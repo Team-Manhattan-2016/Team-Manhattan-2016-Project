@@ -1,1 +1,5 @@
-# Team-Manhattan-2016-Project
+# Team Manhattan
+
+JavaScript UI и DOM TeamWork
+
+Telerik Academy by Progress

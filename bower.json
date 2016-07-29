@@ -1,0 +1,21 @@
+{
+  "name": "Team-Manhattan-2016-Project",
+  "homepage": "https://github.com/Team-Manhattan-2016/Team-Manhattan-2016-Project",
+  "authors": [
+    "owolp"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.1.0",
+    "KineticJS": "kineticjs#^5.1.0"
+  }
+}

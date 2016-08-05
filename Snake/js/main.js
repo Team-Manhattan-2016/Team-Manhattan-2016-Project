@@ -14,19 +14,28 @@ function PressingKey(ev) {
 	let btn = ev.code;
 
 	if(btn === "ArrowUp"){
-		pressingUp = true;
+		UpdatePressedKeys(true, false, false, false);
 	}
 
 	if(btn === "ArrowDown"){
-		pressingDown = true;
+		UpdatePressedKeys(false, true, false, false);
 	}
 
 	if(btn === "ArrowLeft"){
-		pressingLeft = true;
+		UpdatePressedKeys(false, false, true, false);
 	}
 
 	if(btn === "ArrowRight"){
-		pressingRight = true;
+		UpdatePressedKeys(false, false, false, true);
+	}
+
+	//using this function in order to set all keys, except the last one pressed, to false
+	//in order to avoid a snake moving diagonally :D
+	function UpdatePressedKeys(up, down, left, right) {
+		pressingUp = up;
+		pressingDown = down;
+		pressingLeft = left;
+		pressingRight = right;
 	}
 }
 

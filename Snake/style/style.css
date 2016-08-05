@@ -19,3 +19,8 @@ body {
 .bgButtonClicked {
 	background: black;
 }
+
+#bgButtonChange {
+	left: -318px;
+	top: -30px;
+}

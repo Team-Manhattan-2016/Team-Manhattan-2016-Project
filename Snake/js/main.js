@@ -8,7 +8,6 @@ let pressingUp = false,
 function init(ev) {
 	document.addEventListener('keydown', PressingKey);
 	document.addEventListener('keyup', ReleasingKey);
-	playGame();
 }
 
 function PressingKey(ev) {
@@ -51,8 +50,7 @@ function ReleasingKey(ev) {
 	}
 }
 
-//$(document).ready(function() {
-function playGame() {
+$(document).ready(function() {
 	// get the canvas element
 	var canvas = $('#gameCanvas')[0];
 	var ctx = canvas.getContext('2d');

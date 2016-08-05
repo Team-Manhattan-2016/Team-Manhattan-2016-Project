@@ -1,4 +1,58 @@
-$(document).ready(function() {
+window.addEventListener('load', init);
+
+let pressingUp = false,
+	pressingDown = false,
+	pressingLeft = false,
+	pressingRight = false;
+
+function init(ev) {
+	document.addEventListener('keydown', PressingKey);
+	document.addEventListener('keyup', ReleasingKey);
+	playGame();
+}
+
+function PressingKey(ev) {
+	let btn = ev.code;
+
+	if(btn === "ArrowUp"){
+		pressingUp = true;
+	}
+
+	if(btn === "ArrowDown"){
+		pressingDown = true;
+	}
+
+	if(btn === "ArrowLeft"){
+		pressingLeft = true;
+	}
+
+	if(btn === "ArrowRight"){
+		pressingRight = true;
+	}
+}
+
+function ReleasingKey(ev) {
+	let btn = ev.code;
+
+	if(btn === "ArrowUp"){
+		pressingUp = false;
+	}
+
+	if(btn === "ArrowDown"){
+		pressingDown = false;
+	}
+
+	if(btn === "ArrowLeft"){
+		pressingLeft = false;
+	}
+
+	if(btn === "ArrowRight"){
+		pressingRight = false;
+	}
+}
+
+//$(document).ready(function() {
+function playGame() {
 	// get the canvas element
 	var canvas = $('#gameCanvas')[0];
 	var ctx = canvas.getContext('2d');

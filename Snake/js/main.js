@@ -2,8 +2,8 @@ $(document).ready(function() {
 	// get the canvas element
 	var canvas = $('#gameCanvas')[0];
 	var ctx = canvas.getContext('2d');
-	var w = $('#gameCanvas').width();
-	var h = $('#gameCanvas').height();
+	var width = $('#gameCanvas').width();
+	var height = $('#gameCanvas').height();
 	var i, length, snakePositionX, snakePositionY, tail, currentSnake;
 
 	// set the snake
@@ -29,18 +29,17 @@ $(document).ready(function() {
 	}
 
 	function snakePrint() {
-		// set the canvas style on each interval
+		// set the canvas style on each interval based on the canvas class
 		if (canvas.className === 'bgButtonChange') {
 			ctx.fillStyle = 'black';
-			ctx.fillRect(0, 0, w, h);
 			ctx.strokeStyle = 'white';
-			ctx.strokeRect(0, 0, w, h);
 		} else {
 			ctx.fillStyle = 'white';
-			ctx.fillRect(0, 0, w, h);
 			ctx.strokeStyle = 'black';
-			ctx.strokeRect(0, 0, w, h);
 		}
+
+		ctx.fillRect(0, 0, width, height);
+		ctx.strokeRect(0, 0, width, height);
 
 		// get the position of the first element of the snake - the head
 		snakePositionX = snakeArr[0].x;

@@ -3,6 +3,8 @@ window.addEventListener('load', init);
 //snake segment size
 const squareSize = 20;
 
+let squareOffset = squareSize / 2;
+
 const snakeInitialSize = 3;
 
 //updating this when a new key is pressed
@@ -63,9 +65,7 @@ function SnakeThinker() {
 	DrawSnake();
 
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(SnakeThinker, 100-score);
-
-	console.log(currentFood);
+	setTimeout(SnakeThinker, 100-score/10);
 }
 
 function DrawSnake() {
@@ -116,17 +116,13 @@ function PlaceFood() {
 			cY = canvas.height,
 			fX = Math.floor((Math.random() * cX) + 1),
 			fY = Math.floor((Math.random() * cY) + 1);
-
-		if(fX < squareSize / 2) {
-			fX += squareSize / 2;
-		} else if(fX > cX - squareSize / 2) {
-			fX -= cX - (cX - squareSize / 2); 
+		
+		if(fX + squareSize > cX) {
+			fX = cX - squareSize;
 		}
 
-		if(fY < squareSize / 2) {
-			fY += squareSize / 2;
-		} else if(fY > cY - squareSize / 2) {
-			fY -= cY - (cY - squareSize / 2); 
+		if(fY + squareSize > cY) {
+			fY = cY - squareSize;
 		}
 
 		currentFood = {x: fX, y: fY};
@@ -137,8 +133,8 @@ function CheckIfSnakeSteppedOnFood() {
 	for(let i = 0; i < snake.length; i += 1){
 		let segment = snake[i];
 
-		if(Math.abs(segment.x - currentFood.x) < squareSize / 2
-		&& Math.abs(segment.y - currentFood.y) < squareSize / 2) {
+		if(Math.abs((segment.x + squareOffset) - (currentFood.x + squareOffset)) < squareSize
+		&& Math.abs((segment.y + squareOffset) - (currentFood.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}

@@ -19,9 +19,50 @@ let score = 0;
 let snake = [];
 
 function init(ev) {
+	let startButton = document.getElementById('btnStartGame');
+	startButton.addEventListener('click', StartButtonPress);
+	
 	document.addEventListener('keydown', PressingKey);
+}
 
-	setTimeout(CreateSnake, 100);
+function StartButtonPress() {
+	let startButton = document.getElementById('btnStartGame');
+	startButton.parentNode.removeChild(startButton);
+	BeginGame();
+}
+
+function RetryButtonPress() {
+	let gameOverContainer = document.getElementById('gameOverContainer');
+	gameOverContainer.parentNode.removeChild(gameOverContainer);
+	BeginGame();
+}
+
+function BeginGame() {
+	ResetGameVariables();
+	CreateSnake();
+
+	function ResetGameVariables() {
+		snake = [];
+		score = 0;
+
+		//snake initial direction - down
+		moveDelta = {x: 0, y: squareSize};
+	}
+
+	function CreateSnake() {
+		let canvas = document.getElementById('gameCanvas'),
+			ctx = canvas.getContext('2d'),
+			middleX = canvas.width / 2,
+			middleY = canvas.height / 2,
+			i = 0;
+
+		//initialize snake (pointing down)
+		for(i = snakeInitialSize - 1; i >= 0; i -= 1) {
+			snake.push({x: middleX, y: middleY - i*squareSize});
+		}
+	}
+
+	setTimeout(PlaceFood, 100);
 	setTimeout(SnakeThinker, 500);
 }
 
@@ -59,24 +100,6 @@ function PressingKey(ev) {
 	}
 }
 
-function CreateSnake() {
-	let canvas = document.getElementById('gameCanvas'),
-		ctx = canvas.getContext('2d'),
-		middleX = canvas.width / 2,
-		middleY = canvas.height / 2,
-		i = 0;
-
-	//initialize snake (pointing down)
-	for(i = snakeInitialSize - 1; i >= 0; i -= 1) {
-		snake.push({x: middleX, y: middleY - i*squareSize});
-	}
-
-	//snake initial direction - down
-	moveDelta = {x: 0, y: squareSize};
-
-	PlaceFood();
-}
-
 function SnakeThinker() {
 	//make snake move
 	SnakeMove();
@@ -85,6 +108,7 @@ function SnakeThinker() {
 	DrawSnake();
 
 	if(CheckIfSnakeCrashedIntoItself()) {
+		EndGame();
 		return;
 	}
 
@@ -210,4 +234,35 @@ function CheckIfSnakeCrashedIntoItself() {
 	}
 
 	return false;
+}
+
+function EndGame() {
+	let fragment,
+		div,
+		span,
+		button,
+		body;
+
+	fragment = document.createDocumentFragment();
+	div = document.createElement('div');
+	div.setAttribute('id', 'gameOverContainer');
+	div.setAttribute('class', 'window');
+	div.innerHTML = 'Game Over';
+
+	span = document.createElement('span');
+	span.setAttribute('id', 'scoreSpan');
+
+	span.innerHTML = 'Your score: ';
+	span.innerHTML += score;
+
+	button = document.createElement('button');
+	button.setAttribute('id', 'tryAgainButton');
+	button.innerHTML = 'Try again';
+	button.addEventListener('click', RetryButtonPress);
+
+	div.appendChild(span);
+	div.appendChild(button);
+	fragment.appendChild(div);
+	
+	document.body.appendChild(fragment);
 }

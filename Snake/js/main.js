@@ -29,12 +29,32 @@ function PressingKey(ev) {
 	let btn = ev.code;
 
 	if(btn === "ArrowUp"){
+		//if previous direction was down, don't allow the player to press up
+		if(moveDelta.y === squareSize) {
+			return;
+		}
+
 		moveDelta = {x: 0, y: -squareSize};
 	} else if(btn === "ArrowDown"){
+		//if previous direction was up, don't allow the player to press down
+		if(moveDelta.y === -squareSize) {
+			return;
+		}
+
 		moveDelta = {x: 0, y: squareSize};
 	} else if(btn === "ArrowLeft"){
+		//if previous direction was right, don't allow the player to press left
+		if(moveDelta.x === squareSize) {
+			return;
+		}
+
 		moveDelta = {x: -squareSize, y: 0};
 	} else if(btn === "ArrowRight"){
+		//if previous direction was left, don't allow the player to press right
+		if(moveDelta.x === -squareSize) {
+			return;
+		}
+
 		moveDelta = {x: squareSize, y: 0};
 	}
 }

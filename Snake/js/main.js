@@ -101,7 +101,8 @@ function SnakeMove() {
 	snake.push(nextHeadPos);
 
 	//if snake stepped on food, update score and create food elsewhere
-	if(CheckIfSnakeSteppedOnFood()){
+	if(CheckIfSnakeSteppedOnFood(currentFood)){
+		currentFood = {x: -squareSize, y: -squareSize};
 		PlaceFood();
 		score += 10;
 	} else { //else continue moving snake
@@ -118,13 +119,13 @@ function CheckIfSnakeOverflows(headPos) {
 
 	if(headPos.x < 0) {
 		newX = cX;
-	} else if(headPos.x > cX) {
+	} else if(headPos.x + squareSize > cX) {
 		newX = 0;
 	}
 
 	if(headPos.y < 0) {
 		newY = cY;
-	} else if(headPos.y > cY) {
+	} else if(headPos.y + squareSize > cY) {
 		newY = 0;
 	}
 
@@ -132,32 +133,38 @@ function CheckIfSnakeOverflows(headPos) {
 }
 
 function PlaceFood() {
-	//while(CheckIfSnakeSteppedOnFood())
-	//{
-		let canvas = document.getElementById('gameCanvas'),
-			cX = canvas.width,
-			cY = canvas.height,
-			fX = Math.floor((Math.random() * cX) + 1),
-			fY = Math.floor((Math.random() * cY) + 1);
+	let canvas = document.getElementById('gameCanvas'),
+		cX = canvas.width,
+		cY = canvas.height,
+		fX = Math.floor((Math.random() * cX) + 1),
+		fY = Math.floor((Math.random() * cY) + 1);
 		
-		if(fX + squareSize > cX) {
-			fX = cX - squareSize;
-		}
+	if(fX + squareSize > cX) {
+		fX = cX - squareSize;
+	}
 
-		if(fY + squareSize > cY) {
-			fY = cY - squareSize;
-		}
+	if(fY + squareSize > cY) {
+		fY = cY - squareSize;
+	}
 
-		currentFood = {x: fX, y: fY};
-	//}
+	let fakeFood = {x: fX, y: fY};
+
+	//this is in case the newly created food is placed on the snake itself
+	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
+	if(CheckIfSnakeSteppedOnFood(fakeFood)) {
+		PlaceFood();
+		return;
+	}
+
+	currentFood = {x: fX, y: fY};
 }
 
-function CheckIfSnakeSteppedOnFood() {
+function CheckIfSnakeSteppedOnFood(food) {
 	for(let i = 0; i < snake.length; i += 1){
 		let segment = snake[i];
 
-		if(Math.abs((segment.x + squareOffset) - (currentFood.x + squareOffset)) < squareSize
-		&& Math.abs((segment.y + squareOffset) - (currentFood.y + squareOffset)) < squareSize) {
+		if(Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize
+		&& Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}

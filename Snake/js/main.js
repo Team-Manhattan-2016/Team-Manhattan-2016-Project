@@ -64,6 +64,10 @@ function SnakeThinker() {
 	//draw current snake
 	DrawSnake();
 
+	if(CheckIfSnakeCrashedIntoItself()) {
+		return;
+	}
+
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
 	setTimeout(SnakeThinker, 100-score/10);
 }
@@ -165,6 +169,22 @@ function CheckIfSnakeSteppedOnFood(food) {
 
 		if(Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize
 		&& Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function CheckIfSnakeCrashedIntoItself() {
+	let headPos = snake[snake.length-1],
+		i = 0;
+
+	for(i = 0; i < snake.length - 1; i += 1) {
+		let segment = snake[i];
+
+		if(Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize
+		&& Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}

@@ -96,6 +96,8 @@ function SnakeMove() {
 		y: prevHeadPos.y + moveDelta.y
 	}
 
+	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
+
 	snake.push(nextHeadPos);
 
 	//if snake stepped on food, update score and create food elsewhere
@@ -107,10 +109,31 @@ function SnakeMove() {
 	}
 }
 
+function CheckIfSnakeOverflows(headPos) {
+	let canvas = document.getElementById('gameCanvas'),
+			cX = canvas.width,
+			cY = canvas.height,
+			newX = headPos.x,
+			newY = headPos.y;
+
+	if(headPos.x < 0) {
+		newX = cX;
+	} else if(headPos.x > cX) {
+		newX = 0;
+	}
+
+	if(headPos.y < 0) {
+		newY = cY;
+	} else if(headPos.y > cY) {
+		newY = 0;
+	}
+
+	return {x: newX, y: newY};
+}
+
 function PlaceFood() {
 	//while(CheckIfSnakeSteppedOnFood())
 	//{
-		console.log('hiii');
 		let canvas = document.getElementById('gameCanvas'),
 			cX = canvas.width,
 			cY = canvas.height,

@@ -1,12 +1,16 @@
 window.addEventListener('load', init);
 
 //snake segment size
-const squareSize = 10;
+const squareSize = 20;
 
 const snakeInitialSize = 3;
 
 //updating this when a new key is pressed
 let moveDelta = {};
+
+let currentFood = {};
+
+let score = 0;
 
 //the snake will be an array of objects
 //each object will have x and y properties
@@ -47,6 +51,8 @@ function CreateSnake() {
 
 	//snake initial direction - down
 	moveDelta = {x: 0, y: squareSize};
+
+	PlaceFood();
 }
 
 function SnakeThinker() {
@@ -57,7 +63,9 @@ function SnakeThinker() {
 	DrawSnake();
 
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(SnakeThinker, 100);
+	setTimeout(SnakeThinker, 100-score);
+
+	console.log(currentFood);
 }
 
 function DrawSnake() {
@@ -74,6 +82,11 @@ function DrawSnake() {
 		ctx.fillRect(snake[i].x, snake[i].y, squareSize, squareSize);
 		ctx.strokeRect(snake[i].x, snake[i].y, squareSize, squareSize);
 	}
+
+	//draw some food too
+	ctx.fillStyle = 'rgb(155, 0, 0)';
+	ctx.fillRect(currentFood.x, currentFood.y, squareSize, squareSize);
+	ctx.strokeRect(currentFood.x, currentFood.y, squareSize, squareSize);
 }
 
 function SnakeMove() {
@@ -84,5 +97,51 @@ function SnakeMove() {
 	}
 
 	snake.push(nextHeadPos);
-	snake = snake.slice(1);
+
+	//if snake stepped on food, update score and create food elsewhere
+	if(CheckIfSnakeSteppedOnFood()){
+		PlaceFood();
+		score += 10;
+	} else { //else continue moving snake
+		snake = snake.slice(1);
+	}
+}
+
+function PlaceFood() {
+	//while(CheckIfSnakeSteppedOnFood())
+	//{
+		console.log('hiii');
+		let canvas = document.getElementById('gameCanvas'),
+			cX = canvas.width,
+			cY = canvas.height,
+			fX = Math.floor((Math.random() * cX) + 1),
+			fY = Math.floor((Math.random() * cY) + 1);
+
+		if(fX < squareSize / 2) {
+			fX += squareSize / 2;
+		} else if(fX > cX - squareSize / 2) {
+			fX -= cX - (cX - squareSize / 2); 
+		}
+
+		if(fY < squareSize / 2) {
+			fY += squareSize / 2;
+		} else if(fY > cY - squareSize / 2) {
+			fY -= cY - (cY - squareSize / 2); 
+		}
+
+		currentFood = {x: fX, y: fY};
+	//}
+}
+
+function CheckIfSnakeSteppedOnFood() {
+	for(let i = 0; i < snake.length; i += 1){
+		let segment = snake[i];
+
+		if(Math.abs(segment.x - currentFood.x) < squareSize / 2
+		&& Math.abs(segment.y - currentFood.y) < squareSize / 2) {
+			return true;
+		}
+	}
+
+	return false;
 }

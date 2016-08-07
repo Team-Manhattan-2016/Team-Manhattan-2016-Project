@@ -132,9 +132,14 @@ function DrawSnake() {
 	}
 
 	//draw some food too
-	ctx.fillStyle = 'rgb(155, 0, 0)';
-	ctx.fillRect(currentFood.x, currentFood.y, squareSize, squareSize);
-	ctx.strokeRect(currentFood.x, currentFood.y, squareSize, squareSize);
+	var image = new Image();
+
+	function drawFood() {
+		ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
+	}
+
+	image.src = "images/apple.png";
+	image.onload = drawFood;
 }
 
 function SnakeMove() {

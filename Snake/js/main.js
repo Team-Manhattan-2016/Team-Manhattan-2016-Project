@@ -135,7 +135,8 @@ function DrawSnake() {
 	var image = new Image();
 
 	function drawFood() {
-		ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
+		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
+		ctx.drawImage(image, currentFood.x, currentFood.y, squareSize, squareSize);
 	}
 
 	image.src = "images/apple.png";

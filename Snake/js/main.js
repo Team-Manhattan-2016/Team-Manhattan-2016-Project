@@ -184,6 +184,7 @@ function SnakeMove() {
 		};
 		PlaceFood();
 		score += 10;
+		document.getElementById('eatingFood').play();
 	} else { //else continue moving snake
 		snake = snake.slice(1);
 	}
@@ -283,6 +284,7 @@ function EndGame() {
 		button,
 		body;
 
+	document.getElementById('gameOver').play();
 	fragment = document.createDocumentFragment();
 	div = document.createElement('div');
 	div.setAttribute('id', 'gameOverContainer');

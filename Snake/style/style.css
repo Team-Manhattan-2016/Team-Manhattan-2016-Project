@@ -25,6 +25,29 @@ body {
 	font-size: 36px;
 }
 
+#labelDifficulty {
+	display: inline-block;
+	position: absolute;
+	margin-left: 370px;
+	margin-top: 295px;
+	font-size: 20px;
+	font-family: 'Comic Sans MS', cursive, sans-serif;
+	color: #3399ff;
+}
+
+#selectDifficulty {
+	display: inline-block;
+	position: absolute;
+	margin-left: 545px;
+	margin-top: 295px;
+	font-size: 20px;
+	font-family: 'Comic Sans MS', cursive, sans-serif;
+	color: #3399ff;
+	background-color: transparent;
+	border-radius: 20px;
+	border:1px solid #3399ff;
+}
+
 #gameOverContainer {
 	width: 250px;
 	height: 200px;

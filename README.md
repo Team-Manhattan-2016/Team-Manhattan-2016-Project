@@ -45,15 +45,43 @@ The important thing to know before start is that our snake is formed by a chain 
 ### How draw the snake with canvas
 
 ```js
-```
+let canvas = document.getElementById('gameCanvas'),
+	ctx = canvas.getContext('2d'),
+	i = 0;
 
-### The structure of the snake
+ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-```js
+ctx.fillStyle = 'rgb(0, 0, 0)';
+ctx.strokeStyle = 'rgb(255, 255, 255)';
+
+for (i = 0; i < snake.length; i += 1) {
+	ctx.fillRect(snake[i].x, snake[i].y, squareSize, squareSize);
+	ctx.strokeRect(snake[i].x, snake[i].y, squareSize, squareSize);
+}
 ```
 
 ### The movement of the snake
 
 ```js
-```
+let prevHeadPos = snake[snake.length - 1],
+	nextHeadPos = {
+		x: prevHeadPos.x + moveDelta.x,
+		y: prevHeadPos.y + moveDelta.y
+	}
 
+nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
+
+snake.push(nextHeadPos);
+
+//if snake stepped on food, update score and create food elsewhere
+if (CheckIfSnakeSteppedOnFood(currentFood)) {
+	currentFood = {
+		x: -squareSize,
+		y: -squareSize
+	};
+	PlaceFood();
+	score += 10;
+} else { //else continue moving snake
+	snake = snake.slice(1);
+}
+```

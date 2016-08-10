@@ -21,7 +21,7 @@ let snake = [];
 function init(ev) {
 	let startButton = document.getElementById('btnStartGame');
 	startButton.addEventListener('click', StartButtonPress);
-	
+
 	document.addEventListener('keydown', PressingKey);
 }
 
@@ -46,7 +46,10 @@ function BeginGame() {
 		score = 0;
 
 		//snake initial direction - down
-		moveDelta = {x: 0, y: squareSize};
+		moveDelta = {
+			x: 0,
+			y: squareSize
+		};
 	}
 
 	function CreateSnake() {
@@ -57,8 +60,11 @@ function BeginGame() {
 			i = 0;
 
 		//initialize snake (pointing down)
-		for(i = snakeInitialSize - 1; i >= 0; i -= 1) {
-			snake.push({x: middleX, y: middleY - i*squareSize});
+		for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
+			snake.push({
+				x: middleX,
+				y: middleY - i * squareSize
+			});
 		}
 	}
 
@@ -69,51 +75,63 @@ function BeginGame() {
 function PressingKey(ev) {
 	let btn = ev.code;
 
-	if(btn === "ArrowUp"){
+	if (btn === "ArrowUp") {
 		//if previous direction was down, don't allow the player to press up
-		if(moveDelta.y === squareSize) {
+		if (moveDelta.y === squareSize) {
 			return;
 		}
 
-		moveDelta = {x: 0, y: -squareSize};
-	} else if(btn === "ArrowDown"){
+		moveDelta = {
+			x: 0,
+			y: -squareSize
+		};
+	} else if (btn === "ArrowDown") {
 		//if previous direction was up, don't allow the player to press down
-		if(moveDelta.y === -squareSize) {
+		if (moveDelta.y === -squareSize) {
 			return;
 		}
 
-		moveDelta = {x: 0, y: squareSize};
-	} else if(btn === "ArrowLeft"){
+		moveDelta = {
+			x: 0,
+			y: squareSize
+		};
+	} else if (btn === "ArrowLeft") {
 		//if previous direction was right, don't allow the player to press left
-		if(moveDelta.x === squareSize) {
+		if (moveDelta.x === squareSize) {
 			return;
 		}
 
-		moveDelta = {x: -squareSize, y: 0};
-	} else if(btn === "ArrowRight"){
+		moveDelta = {
+			x: -squareSize,
+			y: 0
+		};
+	} else if (btn === "ArrowRight") {
 		//if previous direction was left, don't allow the player to press right
-		if(moveDelta.x === -squareSize) {
+		if (moveDelta.x === -squareSize) {
 			return;
 		}
 
-		moveDelta = {x: squareSize, y: 0};
+		moveDelta = {
+			x: squareSize,
+			y: 0
+		};
 	}
 }
 
 function SnakeThinker() {
 	//make snake move
 	SnakeMove();
-	
+
 	//draw current snake
 	DrawSnake();
 
-	if(CheckIfSnakeCrashedIntoItself()) {
+	if (CheckIfSnakeCrashedIntoItself()) {
 		EndGame();
 		return;
 	}
 
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(SnakeThinker, 100-score/10);
+	setTimeout(SnakeThinker, 100 - score / 10);
 }
 
 function DrawSnake() {
@@ -126,7 +144,7 @@ function DrawSnake() {
 	ctx.fillStyle = 'rgb(0, 0, 0)';
 	ctx.strokeStyle = 'rgb(255, 255, 255)';
 
-	for(i = 0; i < snake.length; i += 1) {
+	for (i = 0; i < snake.length; i += 1) {
 		ctx.fillRect(snake[i].x, snake[i].y, squareSize, squareSize);
 		ctx.strokeRect(snake[i].x, snake[i].y, squareSize, squareSize);
 	}
@@ -144,19 +162,22 @@ function DrawSnake() {
 }
 
 function SnakeMove() {
-	let prevHeadPos = snake[snake.length-1],
+	let prevHeadPos = snake[snake.length - 1],
 		nextHeadPos = {
-		x: prevHeadPos.x + moveDelta.x,
-		y: prevHeadPos.y + moveDelta.y
-	}
+			x: prevHeadPos.x + moveDelta.x,
+			y: prevHeadPos.y + moveDelta.y
+		}
 
 	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
 
 	snake.push(nextHeadPos);
 
 	//if snake stepped on food, update score and create food elsewhere
-	if(CheckIfSnakeSteppedOnFood(currentFood)){
-		currentFood = {x: -squareSize, y: -squareSize};
+	if (CheckIfSnakeSteppedOnFood(currentFood)) {
+		currentFood = {
+			x: -squareSize,
+			y: -squareSize
+		};
 		PlaceFood();
 		score += 10;
 	} else { //else continue moving snake
@@ -166,24 +187,27 @@ function SnakeMove() {
 
 function CheckIfSnakeOverflows(headPos) {
 	let canvas = document.getElementById('gameCanvas'),
-			cX = canvas.width,
-			cY = canvas.height,
-			newX = headPos.x,
-			newY = headPos.y;
+		cX = canvas.width,
+		cY = canvas.height,
+		newX = headPos.x,
+		newY = headPos.y;
 
-	if(headPos.x < 0) {
+	if (headPos.x < 0) {
 		newX = cX;
-	} else if(headPos.x + squareSize > cX) {
+	} else if (headPos.x + squareSize > cX) {
 		newX = 0;
 	}
 
-	if(headPos.y < 0) {
+	if (headPos.y < 0) {
 		newY = cY;
-	} else if(headPos.y + squareSize > cY) {
+	} else if (headPos.y + squareSize > cY) {
 		newY = 0;
 	}
 
-	return {x: newX, y: newY};
+	return {
+		x: newX,
+		y: newY
+	};
 }
 
 function PlaceFood() {
@@ -192,33 +216,39 @@ function PlaceFood() {
 		cY = canvas.height,
 		fX = Math.floor((Math.random() * cX) + 1),
 		fY = Math.floor((Math.random() * cY) + 1);
-		
-	if(fX + squareSize > cX) {
+
+	if (fX + squareSize > cX) {
 		fX = cX - squareSize;
 	}
 
-	if(fY + squareSize > cY) {
+	if (fY + squareSize > cY) {
 		fY = cY - squareSize;
 	}
 
-	let fakeFood = {x: fX, y: fY};
+	let fakeFood = {
+		x: fX,
+		y: fY
+	};
 
 	//this is in case the newly created food is placed on the snake itself
 	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
-	if(CheckIfSnakeSteppedOnFood(fakeFood)) {
+	if (CheckIfSnakeSteppedOnFood(fakeFood)) {
 		PlaceFood();
 		return;
 	}
 
-	currentFood = {x: fX, y: fY};
+	currentFood = {
+		x: fX,
+		y: fY
+	};
 }
 
 function CheckIfSnakeSteppedOnFood(food) {
-	for(let i = 0; i < snake.length; i += 1){
+	for (let i = 0; i < snake.length; i += 1) {
 		let segment = snake[i];
 
-		if(Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize
-		&& Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
+		if (Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}
@@ -227,14 +257,14 @@ function CheckIfSnakeSteppedOnFood(food) {
 }
 
 function CheckIfSnakeCrashedIntoItself() {
-	let headPos = snake[snake.length-1],
+	let headPos = snake[snake.length - 1],
 		i = 0;
 
-	for(i = 0; i < snake.length - 1; i += 1) {
+	for (i = 0; i < snake.length - 1; i += 1) {
 		let segment = snake[i];
 
-		if(Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize
-		&& Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
+		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}
@@ -269,6 +299,6 @@ function EndGame() {
 	div.appendChild(span);
 	div.appendChild(button);
 	fragment.appendChild(div);
-	
+
 	document.body.appendChild(fragment);
 }

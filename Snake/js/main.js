@@ -18,6 +18,9 @@ let score = 0;
 //each object will have x and y properties
 let snake = [];
 
+//Music
+let mainMusic=document.getElementById('main_music');
+
 function init(ev) {
 	let startButton = document.getElementById('btnStartGame');
 	startButton.addEventListener('click', StartButtonPress);
@@ -40,6 +43,7 @@ function RetryButtonPress() {
 function BeginGame() {
 	ResetGameVariables();
 	CreateSnake();
+ mainMusic.play();
 
 	function ResetGameVariables() {
 		snake = [];
@@ -300,5 +304,7 @@ function EndGame() {
 	div.appendChild(button);
 	fragment.appendChild(div);
 
+  mainMusic.pause();
+	mainMusic.currentTime = 0;
 	document.body.appendChild(fragment);
 }

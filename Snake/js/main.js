@@ -240,9 +240,11 @@ function PlaceFood() {
 	let canvas = document.getElementById('gameCanvas'),
 		cX = canvas.width,
 		cY = canvas.height,
-		fX = Math.floor((Math.random() * cX) + 1),
-		fY = Math.floor((Math.random() * cY) + 1);
-
+		 rows = Math.floor(canvas.width/squareSize),
+		 colls = Math.floor(canvas.height/squareSize),
+		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
+		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
+  console.log(fX,fY);
 	if (fX + squareSize > cX) {
 		fX = cX - squareSize;
 	}

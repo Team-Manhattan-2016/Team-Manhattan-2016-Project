@@ -19,6 +19,9 @@ let score = 0;
 //each object will have x and y properties
 let snake = [];
 
+//Difficulty (global)
+let selectedDifficulty;
+
 //Music
 let mainMusic=document.getElementById('main_music');
 
@@ -32,6 +35,7 @@ function init(ev) {
 function StartButtonPress() {
 	let startButton = document.getElementById('btnStartGame');
 	startButton.parentNode.removeChild(startButton);
+	selectDifficulty();
 	BeginGame();
 }
 
@@ -39,6 +43,16 @@ function RetryButtonPress() {
 	let gameOverContainer = document.getElementById('gameOverContainer');
 	gameOverContainer.parentNode.removeChild(gameOverContainer);
 	BeginGame();
+}
+
+function selectDifficulty(){
+	let select = document.getElementById('selectDifficulty');
+	let label = document.getElementById('labelDifficulty');
+
+	selectedDifficulty = select.value;	//assigns value to selectedDifficulty
+
+	select.parentNode.removeChild(select);	//hides the dropdown
+	label.parentNode.removeChild(label);	//hides the label
 }
 
 function BeginGame() {
@@ -137,8 +151,19 @@ function SnakeThinker() {
 		return;
 	}
 
+	// speed of the snake
+	let speed;
+	switch (selectedDifficulty){
+		case 'Easy': speed = 150; // slower
+			console.log('easy');
+			break;
+		case 'Expert': speed = 50; // faster
+			console.log('expert');
+			break;
+		default: speed = 100;
+	}
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(SnakeThinker, 100 - score / 10);
+	setTimeout(SnakeThinker, speed - score / 10);
 }
 
 function DrawSnake() {

@@ -17,7 +17,8 @@ let box;
 let snakexploded = false;
 //let currentFood2 = {};
 
-let score = 0;
+let score = 0,
+    score2 = 0;
 
 //the snake will be an array of objects
 //each object will have x and y properties
@@ -70,6 +71,7 @@ function BeginGame() {
 		snake = [];
     snake2 =[];
 		score = 0;
+		score2 = 0;
 		snakexploded = false;
 
 		//snake initial direction - down
@@ -354,7 +356,9 @@ function SnakeMove() {
 		nextHeadPos = {
 			x: prevHeadPos.x + moveDelta.x,
 			y: prevHeadPos.y + moveDelta.y
-		}
+		},
+		blackSnake = document.getElementById("blackSnake");
+		blackSnake.innerHTML = score;
 
 
 	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
@@ -370,6 +374,7 @@ function SnakeMove() {
 		PlaceFood();
 		PlaceMine();
 		score += 10;
+		blackSnake.innerHTML = score;
 		document.getElementById('eatingFood').play();
 		}
 		else if (CheckIfSnakeSteppedOnMine(currentMine)) {
@@ -390,6 +395,7 @@ function SnakeMove() {
 			explosionpng.onload = drawexplosion;
 
 			score -= 10;
+			blackSnake.innerHTML = score;
 		  PlaceMine();
  		}
 		else if (CheckIfSnakeSteppedOnFood(currentFood2)) {
@@ -400,6 +406,7 @@ function SnakeMove() {
 		PlaceFood2();
 		PlaceMine();
 		score += 10;
+		blackSnake.innerHTML = score;
 		document.getElementById('eatingFood').play();
 		}
 		else { //else continue moving snake
@@ -411,7 +418,9 @@ function Snake2Move() {
 		nextHeadPos = {
 			x: prevHeadPos.x + moveDelta2.x,
 			y: prevHeadPos.y + moveDelta2.y
-		}
+		},
+		whiteSnake = document.getElementById("whiteSnake");
+    whiteSnake.innerHTML = score2;
 
 
 	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
@@ -426,14 +435,16 @@ function Snake2Move() {
 		};
 		PlaceFood();
 		PlaceMine();
-		score += 10;
+		score2 += 10;
+		whiteSnake.innerHTML = score2;
 		document.getElementById('eatingFood').play();
 	}
 	else if (CheckIfSnake2SteppedOnMine(currentMine)) {
 		//snakexploded = true;
 		var audio = new Audio('audio/EXPLOSION.mp3');
 		audio.play();
-		score -= 10;
+		score2 -= 10;
+		whiteSnake.innerHTML = score2;
 		PlaceMine();
 	}else if (CheckIfSnake2SteppedOnFood(currentFood2)) {
 		currentFood2 = {
@@ -442,7 +453,8 @@ function Snake2Move() {
 		};
 		PlaceFood2();
 		PlaceMine();
-		score += 10;
+		score2 += 10;
+		whiteSnake.innerHTML = score2;
 		document.getElementById('eatingFood').play();
 	} else { //else continue moving snake
 		snake2 = snake2.slice(1);
@@ -772,6 +784,7 @@ function EndGame() {
 	let fragment,
 		div,
 		span,
+		span2,
 		button,
 		body;
 
@@ -784,9 +797,13 @@ function EndGame() {
 
 	span = document.createElement('span');
 	span.setAttribute('id', 'scoreSpan');
+	span2 = document.createElement('span');
+	span2.setAttribute('id', 'scoreSpan2');
 
-	span.innerHTML = 'Your score: ';
+	span.innerHTML = 'Black snake score: ';
 	span.innerHTML += score;
+	span2.innerHTML = 'White snake score: ';
+	span2.innerHTML += score2;
 
 	button = document.createElement('button');
 	button.setAttribute('id', 'tryAgainButton');
@@ -794,6 +811,7 @@ function EndGame() {
 	button.addEventListener('click', RetryButtonPress);
 
 	div.appendChild(span);
+	div.appendChild(span2);
 	div.appendChild(button);
 	fragment.appendChild(div);
 

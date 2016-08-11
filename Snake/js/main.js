@@ -13,6 +13,7 @@ let moveDelta2 ={};
 let currentFood = {};
 
 let currentMine = {};
+let box;
 let snakexploded = false;
 //let currentFood2 = {};
 
@@ -115,7 +116,8 @@ function BeginGame() {
 
 	setTimeout(PlaceFood, 100);
 	setTimeout(PlaceFood2, 100);
-		setTimeout(PlaceMine, 100);
+  setTimeout(PlaceMine, 100);
+	setTimeout(PlaceBox, 100);
 	setTimeout(SnakeThinker, 500);
 }
 
@@ -220,6 +222,7 @@ function SnakeThinker() {
   DrawSnake2();
 	Food();
 	Mine();
+	Box();
   if(CheckIfSnake2CrashedIntoSnake() && (snake.length>3))
 	{
 		snake = snake.slice(snake.length - 4,snake.length -1);
@@ -325,6 +328,24 @@ function Mine(){
 
 	image.src = "images/mine.png";
 	image.onload = drawMine;
+
+}
+
+function Box(){
+	let canvas = document.getElementById('gameCanvas'),
+		  ctx = canvas.getContext('2d');
+
+	//draw some food too
+	var image = new Image();
+
+	function drawBox() {
+		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
+		ctx.drawImage(image, currentBox.x, currentBox.y, squareSize, squareSize);
+		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
+	}
+
+	image.src = "images/dedustbox.png";
+	image.onload = drawBox;
 
 }
 
@@ -519,6 +540,45 @@ function PlaceMine() {
 	};
 }
 
+function PlaceBox() {
+	let canvas = document.getElementById('gameCanvas'),
+		cX = canvas.width,
+		cY = canvas.height,
+		 rows = Math.floor(canvas.width/squareSize),
+		 colls = Math.floor(canvas.height/squareSize),
+		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
+		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
+  console.log(fX,fY);
+	if (fX + squareSize > cX) {
+		fX = cX - squareSize;
+	}
+
+	if (fY + squareSize > cY) {
+		fY = cY - squareSize;
+	}
+
+	let fakeBox = {
+		x: fX,
+		y: fY
+	};
+	//this is in case the newly created food is placed on the snake itself
+	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
+	if (CheckIfSnakeSteppedOnBox(fakeBox)) {
+		PlaceBox();
+		return;
+	}
+
+	if (CheckIfSnake2SteppedOnBox(fakeBox)) {
+		PlaceBox();
+		return;
+	}
+
+	currentBox = {
+		x: fX,
+		y: fY
+	};
+}
+
 function PlaceFood2() {
 	let canvas = document.getElementById('gameCanvas'),
 		cX = canvas.width,
@@ -601,6 +661,30 @@ function CheckIfSnake2SteppedOnMine(mine) {
 
 		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function CheckIfSnakeSteppedOnBox(box) {
+	for (let i = 0; i < snake.length; i += 1) {
+		let segment = snake[i];
+
+		if (Math.abs((segment.x + squareOffset) - (box.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (box.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function CheckIfSnake2SteppedOnBox(box) {
+	for (let i = 0; i < snake2.length; i += 1) {
+		let segment = snake2[i];
+
+		if (Math.abs((segment.x + squareOffset) - (box.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (box.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}

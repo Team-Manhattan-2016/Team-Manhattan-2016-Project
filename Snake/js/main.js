@@ -9,7 +9,7 @@ const snakeInitialSize = 3;
 
 //updating this when a new key is pressed
 let moveDelta = {};
-
+let moveDelta2 ={};
 let currentFood = {};
 //let currentFood2 = {};
 
@@ -18,7 +18,7 @@ let score = 0;
 //the snake will be an array of objects
 //each object will have x and y properties
 let snake = [];
-
+let snake2 = [];
 //Difficulty (global)
 let selectedDifficulty;
 
@@ -30,6 +30,7 @@ function init(ev) {
 	startButton.addEventListener('click', StartButtonPress);
 
 	document.addEventListener('keydown', PressingKey);
+  document.addEventListener('keydown', PressingKey2);
 }
 
 function StartButtonPress() {
@@ -58,14 +59,20 @@ function selectDifficulty(){
 function BeginGame() {
 	ResetGameVariables();
 	CreateSnake();
+  CreateSnake2();
  mainMusic.play();
 
 	function ResetGameVariables() {
 		snake = [];
+    snake2 =[];
 		score = 0;
 
 		//snake initial direction - down
 		moveDelta = {
+			x: 0,
+			y: squareSize
+		};
+    moveDelta2 = {
 			x: 0,
 			y: squareSize
 		};
@@ -86,6 +93,21 @@ function BeginGame() {
 			});
 		}
 	}
+  function CreateSnake2() {
+    let canvas = document.getElementById('gameCanvas2'),
+      ctx = canvas.getContext('2d'),
+      middleX = canvas.width / 2,
+      middleY = canvas.height / 2,
+      i = 0;
+
+    //initialize snake (pointing down)
+    for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
+      snake2.push({
+        x: middleX + (2*squareSize),
+        y: middleY - i * squareSize
+      });
+    }
+  }
 
 	setTimeout(PlaceFood, 100);
 	setTimeout(PlaceFood2, 100);
@@ -137,19 +159,70 @@ function PressingKey(ev) {
 		};
 	}
 }
+function PressingKey2(ev) {
+	let btn = ev.keyCode;
+
+	if (btn === 87) { //keyCode of W
+		//if previous direction was down, don't allow the player to press up
+		if (moveDelta2.y === squareSize) {
+			return;
+		}
+
+		moveDelta2 = {
+			x: 0,
+			y: -squareSize
+		};
+	} else if (btn === 83) { //keyCode of S
+		//if previous direction was up, don't allow the player to press down
+		if (moveDelta2.y === -squareSize) {
+			return;
+		}
+
+		moveDelta2 = {
+			x: 0,
+			y: squareSize
+		};
+	} else if (btn === 65) { //keyCode of A
+		//if previous direction was right, don't allow the player to press left
+
+		if (moveDelta2.x === squareSize) {
+			return;
+		}
+
+		moveDelta2 = {
+			x: -squareSize,
+			y: 0
+		};
+	} else if (btn === 	68) { //keyCode of D
+		//if previous direction was left, don't allow the player to press right
+		if (moveDelta2.x === -squareSize) {
+			return;
+		}
+
+		moveDelta2 = {
+			x: squareSize,
+			y: 0
+		};
+	}
+}
 
 function SnakeThinker() {
 	//make snake move
 	SnakeMove();
-
+  Snake2Move();
 	//draw current snake
 	DrawSnake();
+  DrawSnake2();
 	Food();
 
 	if (CheckIfSnakeCrashedIntoItself()) {
 		EndGame();
 		return;
 	}
+  if (CheckIfSnake2CrashedIntoItself()) {
+    EndGame();
+    return;
+  }
 
 	// speed of the snake
 	let speed;
@@ -182,6 +255,22 @@ function DrawSnake() {
 	}
   //Food();
 }
+function DrawSnake2() {
+	let canvas = document.getElementById('gameCanvas2'),
+		ctx = canvas.getContext('2d'),
+		i = 0;
+
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	ctx.fillStyle = 'rgb(255,255, 255)';
+	ctx.strokeStyle = 'rgb(0, 0, 0)';
+
+	for (i = 0; i < snake2.length; i += 1) {
+		ctx.fillRect(snake2[i].x, snake2[i].y, squareSize, squareSize);
+		ctx.strokeRect(snake2[i].x, snake2[i].y, squareSize, squareSize);
+	}
+  //Food();
+}
 
 function Food(){
 	let canvas = document.getElementById('gameCanvas'),
@@ -210,6 +299,7 @@ function SnakeMove() {
 			y: prevHeadPos.y + moveDelta.y
 		}
 
+
 	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
 
 	snake.push(nextHeadPos);
@@ -235,6 +325,40 @@ function SnakeMove() {
 		snake = snake.slice(1);
 	}
 }
+function Snake2Move() {
+	let prevHeadPos = snake2[snake2.length - 1],
+		nextHeadPos = {
+			x: prevHeadPos.x + moveDelta2.x,
+			y: prevHeadPos.y + moveDelta2.y
+		}
+
+
+	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
+
+	snake2.push(nextHeadPos);
+
+	//if snake stepped on food, update score and create food elsewhere
+	if (CheckIfSnake2SteppedOnFood(currentFood)) {
+		currentFood = {
+			x: -squareSize,
+			y: -squareSize
+		};
+		PlaceFood();
+		score += 10;
+		document.getElementById('eatingFood').play();
+	} else if (CheckIfSnake2SteppedOnFood(currentFood2)) {
+		currentFood2 = {
+			x: -squareSize,
+			y: -squareSize
+		};
+		PlaceFood2();
+		score += 10;
+		document.getElementById('eatingFood').play();
+	} else { //else continue moving snake
+		snake2 = snake2.slice(1);
+	}
+}
+
 
 function CheckIfSnakeOverflows(headPos) {
 	let canvas = document.getElementById('gameCanvas'),
@@ -286,9 +410,13 @@ function PlaceFood() {
 	//this is in case the newly created food is placed on the snake itself
 	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
 	if (CheckIfSnakeSteppedOnFood(fakeFood)) {
-		PlaceFood1();
+		PlaceFood();
 		return;
 	}
+  if (CheckIfSnake2SteppedOnFood(fakeFood)) {
+    PlaceFood();
+    return;
+  }
 
 	currentFood = {
 		x: fX,
@@ -300,8 +428,10 @@ function PlaceFood2() {
 	let canvas = document.getElementById('gameCanvas'),
 		cX = canvas.width,
 		cY = canvas.height,
-		fX = Math.floor((Math.random() * cX) + 1),
-		fY = Math.floor((Math.random() * cY) + 1);
+    rows = Math.floor(canvas.width/squareSize),
+    colls = Math.floor(canvas.height/squareSize),
+   fX = Math.floor((Math.random() * rows) + 1)*squareSize,
+   fY = Math.floor((Math.random() * colls) + 1)*squareSize;
 
 	if (fX + squareSize > cX) {
 		fX = cX - squareSize;
@@ -322,6 +452,10 @@ function PlaceFood2() {
 		PlaceFood2();
 		return;
 	}
+  if (CheckIfSnake2SteppedOnFood(fakeFood)) {
+    PlaceFood2();
+    return;
+  }
 
 	currentFood2 = {
 		x: fX,
@@ -341,6 +475,18 @@ function CheckIfSnakeSteppedOnFood(food) {
 
 	return false;
 }
+function CheckIfSnake2SteppedOnFood(food) {
+	for (let i = 0; i < snake2.length; i += 1) {
+		let segment = snake2[i];
+
+		if (Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+
+	return false;
+}
 
 function CheckIfSnakeCrashedIntoItself() {
 	let headPos = snake[snake.length - 1],
@@ -348,6 +494,21 @@ function CheckIfSnakeCrashedIntoItself() {
 
 	for (i = 0; i < snake.length - 1; i += 1) {
 		let segment = snake[i];
+
+		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+
+	return false;
+}
+function CheckIfSnake2CrashedIntoItself() {
+	let headPos = snake2[snake2.length - 1],
+		i = 0;
+
+	for (i = 0; i < snake2.length - 1; i += 1) {
+		let segment = snake2[i];
 
 		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {

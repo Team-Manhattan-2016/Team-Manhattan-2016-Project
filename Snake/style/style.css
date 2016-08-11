@@ -52,18 +52,33 @@ body {
 	border:1px solid #3399ff;
 }
 
+#scores {
+  display: block;
+  position: absolute;
+  border: 3px solid white;
+  border-radius: 10px;
+  width: 230px;
+  height: 100px;
+  font-size: 20px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+	color: white;
+  margin-top: 505px;
+  margin-left: 770px;
+	background-color: #3399ff
+}
+
 #gameOverContainer {
 	width: 250px;
-	height: 200px;
+	height: 280px;
 	display: inline-block;
 	position: absolute;
 	margin-left: 375px;
-	margin-top: 125px;
+	margin-top: 115px;
 	font-size: 36px;
 	text-align: center;
 }
 
-#scoreSpan {
+#scoreSpan, #scoreSpan2 {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	display: block;

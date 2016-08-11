@@ -376,6 +376,19 @@ function SnakeMove() {
 			//snakexploded = true;
 			var audio = new Audio('audio/EXPLOSION.mp3');
 			audio.play();
+
+			let canvas = document.getElementById('gameCanvas');
+			let ctx = canvas.getContext('2d');
+			var explosionpng = new Image();
+			let oldmineposX = currentMine.x,
+			oldmineposY = currentMine.y;
+			function drawexplosion()
+			{
+			ctx.drawImage(explosionpng, oldmineposX, oldmineposY, squareSize*3, squareSize*3);
+			}
+			explosionpng.src = "images/explosionpng.png";
+			explosionpng.onload = drawexplosion;
+
 			score -= 10;
 		  PlaceMine();
  		}

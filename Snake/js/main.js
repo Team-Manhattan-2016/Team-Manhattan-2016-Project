@@ -294,11 +294,11 @@ function Food(){
 	function drawFood() {
 		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
 		ctx.drawImage(image, currentFood.x, currentFood.y, squareSize, squareSize);
-		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
+		ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
 	}
 
 	image.src = "images/apple.png";
-	image2.src = "images/banana_PNG852.png";
+	image2.src = "images/2000px-Bananas.svg.png";
 	image.onload = drawFood;
 	image2.onload = drawFood;
 }

@@ -13,6 +13,10 @@ let moveDelta = {};
 let currentFood = {};
 //let currentFood2 = {};
 
+let currentMine = {};
+
+let snakexploded = false;
+
 let score = 0;
 
 //the snake will be an array of objects
@@ -63,6 +67,7 @@ function BeginGame() {
 	function ResetGameVariables() {
 		snake = [];
 		score = 0;
+		snakexploded = false;
 
 		//snake initial direction - down
 		moveDelta = {
@@ -89,6 +94,7 @@ function BeginGame() {
 
 	setTimeout(PlaceFood, 100);
 	setTimeout(PlaceFood2, 100);
+	setTimeout(PlaceMine, 500);
 	setTimeout(SnakeThinker, 500);
 }
 
@@ -145,8 +151,14 @@ function SnakeThinker() {
 	//draw current snake
 	DrawSnake();
 	Food();
+	Mine();
 
 	if (CheckIfSnakeCrashedIntoItself()) {
+		EndGame();
+		return;
+	}
+
+	if (snakexploded) {
 		EndGame();
 		return;
 	}
@@ -194,13 +206,31 @@ function Food(){
 	function drawFood() {
 		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
 		ctx.drawImage(image, currentFood.x, currentFood.y, squareSize, squareSize);
-		ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
+		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
 	}
 
 	image.src = "images/apple.png";
 	image2.src = "images/banana_PNG852.png";
 	image.onload = drawFood;
 	image2.onload = drawFood;
+}
+
+function Mine(){
+	let canvas = document.getElementById('gameCanvas'),
+		  ctx = canvas.getContext('2d');
+
+	//draw some food too
+	var image = new Image();
+
+	function drawMine() {
+		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
+		ctx.drawImage(image, currentMine.x, currentMine.y, squareSize, squareSize);
+		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
+	}
+
+	image.src = "images/mine.png";
+	image.onload = drawMine;
+
 }
 
 function SnakeMove() {
@@ -221,8 +251,13 @@ function SnakeMove() {
 			y: -squareSize
 		};
 		PlaceFood();
+		PlaceMine();
 		score += 10;
 		document.getElementById('eatingFood').play();
+	}
+	else if (CheckIfSnakeSteppedOnMine(currentMine)) {
+			snakexploded = true;
+			//return;
 	} else if (CheckIfSnakeSteppedOnFood(currentFood2)) {
 		currentFood2 = {
 			x: -squareSize,
@@ -283,6 +318,8 @@ function PlaceFood() {
 		y: fY
 	};
 
+
+
 	//this is in case the newly created food is placed on the snake itself
 	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
 	if (CheckIfSnakeSteppedOnFood(fakeFood)) {
@@ -291,6 +328,43 @@ function PlaceFood() {
 	}
 
 	currentFood = {
+		x: fX,
+		y: fY
+	};
+}
+
+function PlaceMine() {
+	let canvas = document.getElementById('gameCanvas'),
+		cX = canvas.width,
+		cY = canvas.height,
+		 rows = Math.floor(canvas.width/squareSize),
+		 colls = Math.floor(canvas.height/squareSize),
+		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
+		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
+  console.log(fX,fY);
+	if (fX + squareSize > cX) {
+		fX = cX - squareSize;
+	}
+
+	if (fY + squareSize > cY) {
+		fY = cY - squareSize;
+	}
+
+	let fakeMine = {
+		x: fX,
+		y: fY
+	};
+
+
+
+	//this is in case the newly created food is placed on the snake itself
+	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
+	if (CheckIfSnakeSteppedOnMine(fakeMine)) {
+		PlaceMine();
+		return;
+	}
+
+	currentMine = {
 		x: fX,
 		y: fY
 	};
@@ -336,6 +410,20 @@ function CheckIfSnakeSteppedOnFood(food) {
 		if (Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
 			return true;
+		}
+	}
+
+	return false;
+}
+
+function CheckIfSnakeSteppedOnMine(mine) {
+	for (let i = 0; i < snake.length; i += 1) {
+		let segment = snake[i];
+
+		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {
+			return true;
+
 		}
 	}
 

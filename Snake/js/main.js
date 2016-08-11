@@ -220,7 +220,14 @@ function SnakeThinker() {
   DrawSnake2();
 	Food();
 	Mine();
-
+  if(CheckIfSnake2CrashedIntoSnake() && (snake.length>3))
+	{
+		snake = snake.slice(snake.length - 4,snake.length -1);
+	}
+	if(CheckIfSnakeCrashedIntoSnake2() && (snake2.length>3))
+	{
+		snake2 = snake2.slice(snake2.length - 4,snake2.length -1);
+	}
 	if (CheckIfSnakeCrashedIntoItself()) {
 		EndGame();
 		return;
@@ -599,6 +606,39 @@ function CheckIfSnake2CrashedIntoItself() {
 
 	return false;
 }
+function CheckIfSnake2CrashedIntoSnake() {
+	let headPos = snake2[snake2.length - 1],
+		i = 0;
+
+	for (i = 0; i < snake.length - 1; i += 1) {
+		let segment = snake[i];
+
+		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+
+
+	return false;
+}
+function CheckIfSnakeCrashedIntoSnake2() {
+	let headPos = snake[snake.length - 1],
+		i = 0;
+
+	for (i = 0; i < snake2.length - 1; i += 1) {
+		let segment = snake2[i];
+
+		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+
+
+	return false;
+}
+
 
 function EndGame() {
 	let fragment,

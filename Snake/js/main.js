@@ -352,7 +352,11 @@ function SnakeMove() {
 		document.getElementById('eatingFood').play();
 		}
 		else if (CheckIfSnakeSteppedOnMine(currentMine)) {
-			snakexploded = true;
+			//snakexploded = true;
+			var audio = new Audio('audio/EXPLOSION.mp3');
+			audio.play();
+			score -= 10;
+		  PlaceMine();
  		}
 		else if (CheckIfSnakeSteppedOnFood(currentFood2)) {
 		currentFood2 = {
@@ -360,6 +364,7 @@ function SnakeMove() {
 			y: -squareSize
 		};
 		PlaceFood2();
+		PlaceMine();
 		score += 10;
 		document.getElementById('eatingFood').play();
 		}
@@ -386,14 +391,23 @@ function Snake2Move() {
 			y: -squareSize
 		};
 		PlaceFood();
+		PlaceMine();
 		score += 10;
 		document.getElementById('eatingFood').play();
-	} else if (CheckIfSnake2SteppedOnFood(currentFood2)) {
+	}
+	else if (CheckIfSnake2SteppedOnMine(currentMine)) {
+		//snakexploded = true;
+		var audio = new Audio('audio/EXPLOSION.mp3');
+		audio.play();
+		score -= 10;
+		PlaceMine();
+	}else if (CheckIfSnake2SteppedOnFood(currentFood2)) {
 		currentFood2 = {
 			x: -squareSize,
 			y: -squareSize
 		};
 		PlaceFood2();
+		PlaceMine();
 		score += 10;
 		document.getElementById('eatingFood').play();
 	} else { //else continue moving snake
@@ -494,6 +508,11 @@ function PlaceMine() {
 		return;
 	}
 
+	if (CheckIfSnake2SteppedOnMine(fakeMine)) {
+		PlaceMine();
+		return;
+	}
+
 	currentMine = {
 		x: fX,
 		y: fY
@@ -567,6 +586,18 @@ function CheckIfSnake2SteppedOnFood(food) {
 function CheckIfSnakeSteppedOnMine(mine) {
 	for (let i = 0; i < snake.length; i += 1) {
 		let segment = snake[i];
+
+		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function CheckIfSnake2SteppedOnMine(mine) {
+	for (let i = 0; i < snake2.length; i += 1) {
+		let segment = snake2[i];
 
 		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {

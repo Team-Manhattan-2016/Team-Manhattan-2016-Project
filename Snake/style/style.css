@@ -14,10 +14,6 @@ body {
 	display: inline-block;
 	position: absolute;
 }
-#gameCanvas2 {
-	display: inline-block;
-	position: absolute;
-}
 
 #btnStartGame {
 	width: 250px;

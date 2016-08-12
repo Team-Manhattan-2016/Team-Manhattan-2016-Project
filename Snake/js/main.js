@@ -2,40 +2,47 @@ window.addEventListener('load', init);
 
 //snake segment size
 const squareSize = 20;
-
 let squareOffset = squareSize / 2;
-
 const snakeInitialSize = 3;
+const players = 2;
 
-//updating this when a new key is pressed
-let moveDelta = {};
-let moveDelta2 ={};
-let currentFood = {};
-
-let currentMine = {};
-let box;
-let snakexploded = false;
-//let currentFood2 = {};
-
-let score = 0,
-    score2 = 0;
-
-//the snake will be an array of objects
-//each object will have x and y properties
+//global variables
+let moveDelta = [];
+let collectibles = [];
+let score = [];
 let snake = [];
-let snake2 = [];
-//Difficulty (global)
-let selectedDifficulty;
+let mainMusic = document.getElementById('main_music');
+let winner = '';
+let speed = 0;
 
-//Music
-let mainMusic=document.getElementById('main_music');
+let collectibleScores = [
+	10, //apple
+	15, //banana
+	-10 //mine
+]
+
+let collectiblesRes = [
+	"images/apple.png",
+	"images/2000px-Bananas.svg.png",
+	"images/mine.png"
+];
+
+let startPositions = [
+	{
+		x: 0,
+		y: 260
+	},
+	{
+		x: 980,
+		y: 260
+	}
+]
 
 function init(ev) {
 	let startButton = document.getElementById('btnStartGame');
 	startButton.addEventListener('click', StartButtonPress);
 
 	document.addEventListener('keydown', PressingKey);
-  document.addEventListener('keydown', PressingKey2);
 }
 
 function StartButtonPress() {
@@ -55,412 +62,276 @@ function selectDifficulty(){
 	let select = document.getElementById('selectDifficulty');
 	let label = document.getElementById('labelDifficulty');
 
-	selectedDifficulty = select.value;	//assigns value to selectedDifficulty
+	let selectedDifficulty = select.value;	//assigns value to selectedDifficulty
+
+	if(selectedDifficulty === 'Easy'){speed = 150;}
+	else if(selectedDifficulty === 'Normal'){speed = 100;}
+	else {speed = 50;}
 
 	select.parentNode.removeChild(select);	//hides the dropdown
 	label.parentNode.removeChild(label);	//hides the label
 }
 
 function BeginGame() {
+	let canvas = document.getElementById('gameCanvas'),
+		ctx = canvas.getContext('2d');
+
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 	ResetGameVariables();
-	CreateSnake();
-  CreateSnake2();
- mainMusic.play();
+	CreateSnakes();
+ 	mainMusic.play();
 
 	function ResetGameVariables() {
 		snake = [];
-    snake2 =[];
-		score = 0;
-		score2 = 0;
-		snakexploded = false;
+		score = [];
+		moveDelta = [];
+		collectibles = [];
 
-		//snake initial direction - down
-		moveDelta = {
-			x: 0,
-			y: squareSize
-		};
-    moveDelta2 = {
-			x: 0,
-			y: squareSize
-		};
-	}
+		for(let i = 0; i < players; i += 1){
+			moveDelta.push({x: i === 0 ? squareSize:-squareSize, y: 0});
+			snake.push([]);
+			score.push(0);
+		}
 
-	function CreateSnake() {
-		let canvas = document.getElementById('gameCanvas'),
-			ctx = canvas.getContext('2d'),
-			middleX = canvas.width / 2,
-			middleY = canvas.height / 2,
-			i = 0;
-
-		//initialize snake (pointing down)
-		for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
-			snake.push({
-				x: middleX,
-				y: middleY - i * squareSize
-			});
+		for(let i = 0; i < 3; i += 1){
+			collectibles.push({});
 		}
 	}
-  function CreateSnake2() {
-    let canvas = document.getElementById('gameCanvas2'),
-      ctx = canvas.getContext('2d'),
-      middleX = canvas.width / 2,
-      middleY = canvas.height / 2,
-      i = 0;
 
-    //initialize snake (pointing down)
-    for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
-      snake2.push({
-        x: middleX + (2*squareSize),
-        y: middleY - i * squareSize
-      });
-    }
-  }
+	function CreateSnakes() {
+		let canvas = document.getElementById('gameCanvas'),
+			ctx = canvas.getContext('2d'),
+			i = 0;
 
-	setTimeout(PlaceFood, 100);
-	setTimeout(PlaceFood2, 100);
-  setTimeout(PlaceMine, 100);
-	setTimeout(PlaceBox, 100);
-	setTimeout(SnakeThinker, 500);
+			for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
+				snake[0].push({
+					x: startPositions[0].x - i * squareSize,
+					y: startPositions[0].y
+				});
+			}
+
+			for (i = snakeInitialSize - 1; i >= 0; i -= 1) {
+				snake[1].push({
+					x: startPositions[1].x + i * squareSize,
+					y: startPositions[1].y
+				});
+			}
+	}
+
+	for(let i = 0; i < collectibles.length; i += 1){PlaceCollectible(i);}
+	setTimeout(GameThinker, 500);
 }
 
 function PressingKey(ev) {
 	let btn = ev.code;
-
-	if (btn === "ArrowUp") {
-		//if previous direction was down, don't allow the player to press up
-		if (moveDelta.y === squareSize) {
-			return;
-		}
-
-		moveDelta = {
-			x: 0,
-			y: -squareSize
-		};
+	
+	if (btn === "KeyW") {
+		if (moveDelta[0].y === squareSize) {return;}
+		moveDelta[0] = {x: 0, y: -squareSize};
+	} else if (btn === "KeyS") {
+		if (moveDelta[0].y === -squareSize) {return;}
+		moveDelta[0] = {x: 0, y: squareSize};
+	} else if (btn === "KeyA") {
+		if (moveDelta[0].x === squareSize) {return;}
+		moveDelta[0] = {x: -squareSize, y: 0};
+	} else if (btn === "KeyD") {
+		if (moveDelta[0].x === -squareSize) {return;}
+		moveDelta[0] = {x: squareSize, y: 0};
+	} else if (btn === "ArrowUp") {
+		if (moveDelta[1].y === squareSize) {return;}
+		moveDelta[1] = {x: 0, y: -squareSize};
 	} else if (btn === "ArrowDown") {
-		//if previous direction was up, don't allow the player to press down
-		if (moveDelta.y === -squareSize) {
-			return;
-		}
-
-		moveDelta = {
-			x: 0,
-			y: squareSize
-		};
+		if (moveDelta[1].y === -squareSize) {return;}
+		moveDelta[1] = {x: 0, y: squareSize};
 	} else if (btn === "ArrowLeft") {
-		//if previous direction was right, don't allow the player to press left
-		if (moveDelta.x === squareSize) {
-			return;
-		}
-
-		moveDelta = {
-			x: -squareSize,
-			y: 0
-		};
+		if (moveDelta[1].x === squareSize) {return;}
+		moveDelta[1] = {x: -squareSize, y: 0};
 	} else if (btn === "ArrowRight") {
-		//if previous direction was left, don't allow the player to press right
-		if (moveDelta.x === -squareSize) {
-			return;
-		}
-
-		moveDelta = {
-			x: squareSize,
-			y: 0
-		};
-	}
-}
-function PressingKey2(ev) {
-	let btn = ev.keyCode;
-
-	if (btn === 87) { //keyCode of W
-		//if previous direction was down, don't allow the player to press up
-		if (moveDelta2.y === squareSize) {
-			return;
-		}
-
-		moveDelta2 = {
-			x: 0,
-			y: -squareSize
-		};
-	} else if (btn === 83) { //keyCode of S
-		//if previous direction was up, don't allow the player to press down
-		if (moveDelta2.y === -squareSize) {
-			return;
-		}
-
-		moveDelta2 = {
-			x: 0,
-			y: squareSize
-		};
-	} else if (btn === 65) { //keyCode of A
-		//if previous direction was right, don't allow the player to press left
-
-		if (moveDelta2.x === squareSize) {
-			return;
-		}
-
-		moveDelta2 = {
-			x: -squareSize,
-			y: 0
-		};
-	} else if (btn === 	68) { //keyCode of D
-		//if previous direction was left, don't allow the player to press right
-		if (moveDelta2.x === -squareSize) {
-			return;
-		}
-
-		moveDelta2 = {
-			x: squareSize,
-			y: 0
-		};
+		if (moveDelta[1].x === -squareSize) {return;}
+		moveDelta[1] = {x: squareSize, y: 0};
 	}
 }
 
-function SnakeThinker() {
-	//make snake move
-	SnakeMove();
-  Snake2Move();
-	//draw current snake
-	DrawSnake();
-  DrawSnake2();
-	Food();
-	Mine();
-	Box();
-  if(CheckIfSnake2CrashedIntoSnake() && (snake.length>3))
-	{
-		snake = snake.slice(snake.length - 4,snake.length -1);
-	}
-	if(CheckIfSnakeCrashedIntoSnake2() && (snake2.length>3))
-	{
-		snake2 = snake2.slice(snake2.length - 4,snake2.length -1);
-	}
-	if (CheckIfSnakeCrashedIntoItself()) {
-		EndGame();
-		return;
-	}
-  if (CheckIfSnake2CrashedIntoItself()) {
-    EndGame();
-    return;
-  }
+function GameThinker() {
+	SnakesMove();
 
-	if (snakexploded) {
-		EndGame();
-		return;
+	for(let i = 0; i < players; i += 1){
+		if(CheckIfSnakeCrashedIntoItself(i)){
+			winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+			EndGame();
+			return;
+		}
+
+		let opponentSliceAt = CheckIfSnakeCrashedIntoTheOtherOne(i);
+
+		if(opponentSliceAt){
+			if(CheckIfSnakesCrashHeadFirst()){ //snakes crash head first
+				winner = 'Draw!';
+				EndGame();
+				return;
+			}
+
+			if(CheckIfSnakesCrashCentipedeStyle()){ //snake crashed into the back of the other one
+				winner = winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+				EndGame();
+				return;
+			}
+
+			DoSlice(GetOppositePlayer(i), opponentSliceAt-1);
+		}
+
+		let sliceAtIndex = 1;
+
+		for(let j = 0; j < collectibles.length; j += 1){
+			if(CheckIfSnakeSteppedOnCollectible(i, collectibles[j])){	
+				DoCollect(i, j);
+
+				function DoCollect(plr, cIndex){
+					score[plr] += collectibleScores[cIndex];
+
+					if(cIndex < collectibles.length - 1){
+						sliceAtIndex = 0;
+						document.getElementById('eatingFood').play();
+					} else {
+						if(snake[i].length - 2 < snakeInitialSize){
+							winner = winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+							EndGame();
+							return;
+						}
+
+						sliceAtIndex = 2;
+						DoExplosion(collectibles[cIndex]);
+					}
+
+					collectibles[cIndex] = {x: -squareSize, y: -squareSize};
+					PlaceCollectible(cIndex);
+					UpdateScoreBoard();
+				}
+			}
+		}
+
+		if(sliceAtIndex > 0) {
+			RemoveSnakeSegments(i, sliceAtIndex);
+		}
+
+		snake[i] = snake[i].slice(sliceAtIndex);
+
+		DrawSnake(i);
 	}
 
-	// speed of the snake
-	let speed;
-	switch (selectedDifficulty){
-		case 'Easy': speed = 150; // slower
-			console.log('easy');
-			break;
-		case 'Expert': speed = 50; // faster
-			console.log('expert');
-			break;
-		default: speed = 100;
-	}
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(SnakeThinker, speed - score / 10);
+	setTimeout(GameThinker, speed - Math.round(Math.max(score[0], score[1]) / 10));
 }
 
-function DrawSnake() {
+function DoSlice(plr, sliceAt){
+	RemoveSnakeSegments(plr, sliceAt);
+	snake[plr] = snake[plr].slice(sliceAt);
+}
+
+function DoExplosion(bomb){
 	let canvas = document.getElementById('gameCanvas'),
 		ctx = canvas.getContext('2d'),
-		i = 0;
+		audio = new Audio('audio/EXPLOSION.mp3'),
+		explosionpng = new Image();
+	
+	audio.play();
+	explosionpng.src = "images/explosionpng.png";
+	explosionpng.onload = drawexplosion;
 
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-	ctx.fillStyle = 'rgb(0, 0, 0)';
-	ctx.strokeStyle = 'rgb(255, 255, 255)';
-
-	for (i = 0; i < snake.length; i += 1) {
-		ctx.fillRect(snake[i].x, snake[i].y, squareSize, squareSize);
-		ctx.strokeRect(snake[i].x, snake[i].y, squareSize, squareSize);
+	function drawexplosion()
+	{
+		ctx.drawImage(explosionpng, bomb.x, bomb.y, squareSize, squareSize);
 	}
-  //Food();
-}
-function DrawSnake2() {
-	let canvas = document.getElementById('gameCanvas2'),
-		ctx = canvas.getContext('2d'),
-		i = 0;
-
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-	ctx.fillStyle = 'rgb(255,255, 255)';
-	ctx.strokeStyle = 'rgb(0, 0, 0)';
-
-	for (i = 0; i < snake2.length; i += 1) {
-		ctx.fillRect(snake2[i].x, snake2[i].y, squareSize, squareSize);
-		ctx.strokeRect(snake2[i].x, snake2[i].y, squareSize, squareSize);
-	}
-  //Food();
 }
 
-function Food(){
+function RemoveSnakeSegments(plr, count) {
 	let canvas = document.getElementById('gameCanvas'),
-		  ctx = canvas.getContext('2d');
+		ctx = canvas.getContext('2d');
 
-	//draw some food too
-	var image = new Image(),
-	    image2 = new Image();
+	for(let i = 0; i < count; i += 1){
+		let lastSegmentX = snake[plr][i].x,
+			lastSegmentY = snake[plr][i].y;
+
+		ctx.clearRect(lastSegmentX-1, lastSegmentY-1, squareSize+2, squareSize+2);
+	}
+}
+
+function DrawSnake(plr) {
+	let canvas = document.getElementById('gameCanvas'),
+		ctx = canvas.getContext('2d'),
+		sStyle = plr * 255,
+		fStyle = sStyle === 255 ? 0 : 255;
+
+	ctx.fillStyle = 'rgb(' + fStyle + ', ' + fStyle + ', ' + fStyle + ')';
+	ctx.strokeStyle = 'rgb(' + sStyle + ', ' + sStyle + ', ' + sStyle + ')';
+
+	ctx.fillRect(snake[plr][snake[plr].length-1].x, snake[plr][snake[plr].length-1].y, squareSize, squareSize);
+	ctx.strokeRect(snake[plr][snake[plr].length-1].x, snake[plr][snake[plr].length-1].y, squareSize, squareSize);
+}
+
+function PlaceCollectible(cIndex) {
+	let canvas = document.getElementById('gameCanvas'),
+		ctx = canvas.getContext('2d'),
+		cX = canvas.width,
+		cY = canvas.height,
+		fX = Math.floor((Math.random() * cX) + 1),
+		fY = Math.floor((Math.random() * cY) + 1);
+
+	SnapCollectibleToGrid();
+
+	function SnapCollectibleToGrid() {
+		fX = Math.round(fX / squareSize) * squareSize;
+		fx = (fX + squareSize > cX) ? fX = cX - squareSize : fX;
+		fY = Math.round(fY / squareSize) * squareSize;
+		fY = (fY + squareSize > cY) ? fY = cY - squareSize : fY;
+	}
+
+	let fakeColl = {x: fX, y: fY};
+	
+	if(CheckIfCollectiblesStack(fakeColl)){
+		PlaceCollectible(cIndex);
+		return;
+	}
+
+	for(let i = 0; i < players; i += 1){
+		if(CheckIfSnakeSteppedOnCollectible(i, fakeColl)){
+			PlaceCollectible(cIndex);
+			return;
+		}
+	}
+
+	collectibles[cIndex] = {
+		x: fX,
+		y: fY
+	};
+
+	let image = new Image();
+
+	image.src = collectiblesRes[cIndex];
+ 	image.onload = drawFood;
 
 	function drawFood() {
-		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
-		ctx.drawImage(image, currentFood.x, currentFood.y, squareSize, squareSize);
-		ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
-	}
-
-	image.src = "images/apple.png";
-	image2.src = "images/2000px-Bananas.svg.png";
-	image.onload = drawFood;
-	image2.onload = drawFood;
+ 		ctx.drawImage(image, collectibles[cIndex].x, collectibles[cIndex].y, squareSize, squareSize);
+ 	}
 }
 
-function Mine(){
-	let canvas = document.getElementById('gameCanvas'),
-		  ctx = canvas.getContext('2d');
+function SnakesMove() {
+	let prevHeadPos = [
+		snake[0][snake[0].length - 1],
+		snake[1][snake[1].length - 1]
+	],
+		nextHeadPos = [
+			{x: prevHeadPos[0].x + moveDelta[0].x, y: prevHeadPos[0].y + moveDelta[0].y},
+			{x: prevHeadPos[1].x + moveDelta[1].x, y: prevHeadPos[1].y + moveDelta[1].y}
+		]
 
-	//draw some food too
-	var image = new Image();
+	nextHeadPos[0] = CheckIfSnakeOverflows(nextHeadPos[0]);
+	nextHeadPos[1] = CheckIfSnakeOverflows(nextHeadPos[1]);
 
-	function drawMine() {
-		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
-		ctx.drawImage(image, currentMine.x, currentMine.y, squareSize, squareSize);
-		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
-	}
-
-	image.src = "images/mine.png";
-	image.onload = drawMine;
-
+	snake[0].push(nextHeadPos[0]);
+	snake[1].push(nextHeadPos[1]);
 }
-
-function Box(){
-	let canvas = document.getElementById('gameCanvas'),
-		  ctx = canvas.getContext('2d');
-
-	//draw some food too
-	var image = new Image();
-
-	function drawBox() {
-		//ctx.drawImage(image, currentFood.x - 10, currentFood.y - 10);
-		ctx.drawImage(image, currentBox.x, currentBox.y, squareSize, squareSize);
-		//ctx.drawImage(image2, currentFood2.x, currentFood2.y, squareSize, squareSize);
-	}
-
-	image.src = "images/dedustbox.png";
-	image.onload = drawBox;
-
-}
-
-function SnakeMove() {
-	let prevHeadPos = snake[snake.length - 1],
-		nextHeadPos = {
-			x: prevHeadPos.x + moveDelta.x,
-			y: prevHeadPos.y + moveDelta.y
-		},
-		blackSnake = document.getElementById("blackSnake");
-		blackSnake.innerHTML = score;
-
-
-	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
-
-	snake.push(nextHeadPos);
-
-	//if snake stepped on food, update score and create food elsewhere
-	if (CheckIfSnakeSteppedOnFood(currentFood)) {
-		currentFood = {
-			x: -squareSize,
-			y: -squareSize
-		};
-		PlaceFood();
-		PlaceMine();
-		score += 10;
-		blackSnake.innerHTML = score;
-		document.getElementById('eatingFood').play();
-		}
-		else if (CheckIfSnakeSteppedOnMine(currentMine)) {
-			//snakexploded = true;
-			var audio = new Audio('audio/EXPLOSION.mp3');
-			audio.play();
-
-			let canvas = document.getElementById('gameCanvas');
-			let ctx = canvas.getContext('2d');
-			var explosionpng = new Image();
-			let oldmineposX = currentMine.x,
-			oldmineposY = currentMine.y;
-			function drawexplosion()
-			{
-			ctx.drawImage(explosionpng, oldmineposX, oldmineposY, squareSize*3, squareSize*3);
-			}
-			explosionpng.src = "images/explosionpng.png";
-			explosionpng.onload = drawexplosion;
-
-			score -= 10;
-			blackSnake.innerHTML = score;
-		  PlaceMine();
- 		}
-		else if (CheckIfSnakeSteppedOnFood(currentFood2)) {
-		currentFood2 = {
-			x: -squareSize,
-			y: -squareSize
-		};
-		PlaceFood2();
-		PlaceMine();
-		score += 10;
-		blackSnake.innerHTML = score;
-		document.getElementById('eatingFood').play();
-		}
-		else { //else continue moving snake
-		snake = snake.slice(1);
-		}
-}
-function Snake2Move() {
-	let prevHeadPos = snake2[snake2.length - 1],
-		nextHeadPos = {
-			x: prevHeadPos.x + moveDelta2.x,
-			y: prevHeadPos.y + moveDelta2.y
-		},
-		whiteSnake = document.getElementById("whiteSnake");
-    whiteSnake.innerHTML = score2;
-
-
-	nextHeadPos = CheckIfSnakeOverflows(nextHeadPos);
-
-	snake2.push(nextHeadPos);
-
-	//if snake stepped on food, update score and create food elsewhere
-	if (CheckIfSnake2SteppedOnFood(currentFood)) {
-		currentFood = {
-			x: -squareSize,
-			y: -squareSize
-		};
-		PlaceFood();
-		PlaceMine();
-		score2 += 10;
-		whiteSnake.innerHTML = score2;
-		document.getElementById('eatingFood').play();
-	}
-	else if (CheckIfSnake2SteppedOnMine(currentMine)) {
-		//snakexploded = true;
-		var audio = new Audio('audio/EXPLOSION.mp3');
-		audio.play();
-		score2 -= 10;
-		whiteSnake.innerHTML = score2;
-		PlaceMine();
-	}else if (CheckIfSnake2SteppedOnFood(currentFood2)) {
-		currentFood2 = {
-			x: -squareSize,
-			y: -squareSize
-		};
-		PlaceFood2();
-		PlaceMine();
-		score2 += 10;
-		whiteSnake.innerHTML = score2;
-		document.getElementById('eatingFood').play();
-	} else { //else continue moving snake
-		snake2 = snake2.slice(1);
-	}
-}
-
 
 function CheckIfSnakeOverflows(headPos) {
 	let canvas = document.getElementById('gameCanvas'),
@@ -469,198 +340,21 @@ function CheckIfSnakeOverflows(headPos) {
 		newX = headPos.x,
 		newY = headPos.y;
 
-	if (headPos.x < 0) {
-		newX = cX;
-	} else if (headPos.x + squareSize > cX) {
-		newX = 0;
-	}
+	if (headPos.x < 0) {newX = cX;} 
+	else if (headPos.x + squareSize > cX) {newX = 0;}
 
-	if (headPos.y < 0) {
-		newY = cY;
-	} else if (headPos.y + squareSize > cY) {
-		newY = 0;
-	}
+	if (headPos.y < 0) {newY = cY;} 
+	else if (headPos.y + squareSize > cY) {newY = 0;}
 
-	return {
-		x: newX,
-		y: newY
-	};
+	return {x: newX, y: newY};
 }
 
-function PlaceFood() {
-	let canvas = document.getElementById('gameCanvas'),
-		cX = canvas.width,
-		cY = canvas.height,
-		 rows = Math.floor(canvas.width/squareSize),
-		 colls = Math.floor(canvas.height/squareSize),
-		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
-		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
-  console.log(fX,fY);
-	if (fX + squareSize > cX) {
-		fX = cX - squareSize;
-	}
+function CheckIfCollectiblesStack(collectible) {
+	for (let i = 0; i < collectibles.length; i += 1) {
+		let coll = collectibles[i];
 
-	if (fY + squareSize > cY) {
-		fY = cY - squareSize;
-	}
-
-	let fakeFood = {
-		x: fX,
-		y: fY
-	};
-
-	//this is in case the newly created food is placed on the snake itself
-	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
-	if (CheckIfSnakeSteppedOnFood(fakeFood)) {
-		PlaceFood();
-		return;
-	}
-  if (CheckIfSnake2SteppedOnFood(fakeFood)) {
-    PlaceFood();
-    return;
-  }
-
-	currentFood = {
-		x: fX,
-		y: fY
-	};
-}
-
-function PlaceMine() {
-	let canvas = document.getElementById('gameCanvas'),
-		cX = canvas.width,
-		cY = canvas.height,
-		 rows = Math.floor(canvas.width/squareSize),
-		 colls = Math.floor(canvas.height/squareSize),
-		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
-		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
-  console.log(fX,fY);
-	if (fX + squareSize > cX) {
-		fX = cX - squareSize;
-	}
-
-	if (fY + squareSize > cY) {
-		fY = cY - squareSize;
-	}
-
-	let fakeMine = {
-		x: fX,
-		y: fY
-	};
-	//this is in case the newly created food is placed on the snake itself
-	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
-	if (CheckIfSnakeSteppedOnMine(fakeMine)) {
-		PlaceMine();
-		return;
-	}
-
-	if (CheckIfSnake2SteppedOnMine(fakeMine)) {
-		PlaceMine();
-		return;
-	}
-
-	currentMine = {
-		x: fX,
-		y: fY
-	};
-}
-
-function PlaceBox() {
-	let canvas = document.getElementById('gameCanvas'),
-		cX = canvas.width,
-		cY = canvas.height,
-		 rows = Math.floor(canvas.width/squareSize),
-		 colls = Math.floor(canvas.height/squareSize),
-		fX = Math.floor((Math.random() * rows) + 1)*squareSize,
-		fY = Math.floor((Math.random() * colls) + 1)*squareSize;
-  console.log(fX,fY);
-	if (fX + squareSize > cX) {
-		fX = cX - squareSize;
-	}
-
-	if (fY + squareSize > cY) {
-		fY = cY - squareSize;
-	}
-
-	let fakeBox = {
-		x: fX,
-		y: fY
-	};
-	//this is in case the newly created food is placed on the snake itself
-	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
-	if (CheckIfSnakeSteppedOnBox(fakeBox)) {
-		PlaceBox();
-		return;
-	}
-
-	if (CheckIfSnake2SteppedOnBox(fakeBox)) {
-		PlaceBox();
-		return;
-	}
-
-	currentBox = {
-		x: fX,
-		y: fY
-	};
-}
-
-function PlaceFood2() {
-	let canvas = document.getElementById('gameCanvas'),
-		cX = canvas.width,
-		cY = canvas.height,
-    rows = Math.floor(canvas.width/squareSize),
-    colls = Math.floor(canvas.height/squareSize),
-   fX = Math.floor((Math.random() * rows) + 1)*squareSize,
-   fY = Math.floor((Math.random() * colls) + 1)*squareSize;
-
-	if (fX + squareSize > cX) {
-		fX = cX - squareSize;
-	}
-
-	if (fY + squareSize > cY) {
-		fY = cY - squareSize;
-	}
-
-	let fakeFood = {
-		x: fX,
-		y: fY
-	};
-
-	//this is in case the newly created food is placed on the snake itself
-	//in that case, don't create food just yet, call PlaceFood again (until the new food is not on the snake)
-	if (CheckIfSnakeSteppedOnFood(fakeFood)) {
-		PlaceFood2();
-		return;
-	}
-  if (CheckIfSnake2SteppedOnFood(fakeFood)) {
-    PlaceFood2();
-    return;
-  }
-
-	currentFood2 = {
-		x: fX,
-		y: fY
-	};
-}
-
-function CheckIfSnakeSteppedOnFood(food) {
-	for (let i = 0; i < snake.length; i += 1) {
-		let segment = snake[i];
-
-		if (Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
-			return true;
-		}
-	}
-
-	return false;
-}
-function CheckIfSnake2SteppedOnFood(food) {
-	for (let i = 0; i < snake2.length; i += 1) {
-		let segment = snake2[i];
-
-		if (Math.abs((segment.x + squareOffset) - (food.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (food.y + squareOffset)) < squareSize) {
+		if (Math.abs((coll.x + squareOffset) - (collectible.x + squareOffset)) < squareSize &&
+			Math.abs((coll.y + squareOffset) - (collectible.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}
@@ -668,60 +362,25 @@ function CheckIfSnake2SteppedOnFood(food) {
 	return false;
 }
 
-function CheckIfSnakeSteppedOnMine(mine) {
-	for (let i = 0; i < snake.length; i += 1) {
-		let segment = snake[i];
+function CheckIfSnakeSteppedOnCollectible(plr, collectible) {
+	for (let i = 0; i < snake[plr].length; i += 1) {
+		let segment = snake[plr][i];
 
-		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {
+		if (Math.abs((segment.x + squareOffset) - (collectible.x + squareOffset)) < squareSize &&
+			Math.abs((segment.y + squareOffset) - (collectible.y + squareOffset)) < squareSize) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
-function CheckIfSnake2SteppedOnMine(mine) {
-	for (let i = 0; i < snake2.length; i += 1) {
-		let segment = snake2[i];
-
-		if (Math.abs((segment.x + squareOffset) - (mine.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (mine.y + squareOffset)) < squareSize) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function CheckIfSnakeSteppedOnBox(box) {
-	for (let i = 0; i < snake.length; i += 1) {
-		let segment = snake[i];
-
-		if (Math.abs((segment.x + squareOffset) - (box.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (box.y + squareOffset)) < squareSize) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function CheckIfSnake2SteppedOnBox(box) {
-	for (let i = 0; i < snake2.length; i += 1) {
-		let segment = snake2[i];
-
-		if (Math.abs((segment.x + squareOffset) - (box.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (box.y + squareOffset)) < squareSize) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function CheckIfSnakeCrashedIntoItself() {
-	let headPos = snake[snake.length - 1],
+function CheckIfSnakeCrashedIntoItself(plr) {
+	let headPos = snake[plr][snake[plr].length - 1],
 		i = 0;
 
-	for (i = 0; i < snake.length - 1; i += 1) {
-		let segment = snake[i];
+	for (i = 0; i < snake[plr].length - 1; i += 1) {
+		let segment = snake[plr][i];
 
 		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
@@ -731,54 +390,55 @@ function CheckIfSnakeCrashedIntoItself() {
 
 	return false;
 }
-function CheckIfSnake2CrashedIntoItself() {
-	let headPos = snake2[snake2.length - 1],
-		i = 0;
 
-	for (i = 0; i < snake2.length - 1; i += 1) {
-		let segment = snake2[i];
+function CheckIfSnakeCrashedIntoTheOtherOne(plr) {
+	let headPos = snake[plr][snake[plr].length - 1],
+		i = 0,
+		oppositePlayer = GetOppositePlayer(plr);
+
+	for (i = 0; i < snake[oppositePlayer].length - 1; i += 1) {
+		let segment = snake[oppositePlayer][i];
 
 		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
 			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
-			return true;
+			return i+1;
 		}
 	}
 
 	return false;
 }
-function CheckIfSnake2CrashedIntoSnake() {
-	let headPos = snake2[snake2.length - 1],
-		i = 0;
 
-	for (i = 0; i < snake.length - 1; i += 1) {
-		let segment = snake[i];
-
-		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
-			return true;
-		}
+function CheckIfSnakesCrashHeadFirst(){
+	//if(((moveDelta[0].x === moveDelta[1].x && moveDelta[0].y === moveDelta[1].y * -1)
+	//|| (moveDelta[0].x === moveDelta[1].x * -1 && moveDelta[0].y === moveDelta[1].y))
+	//&& 
+	if(Math.abs((snake[0][snake[0].length-1].x + squareOffset) - (snake[1][snake[1].length-1].x + squareOffset)) <= squareSize &&
+	Math.abs((snake[0][snake[0].length-1].y + squareOffset) - (snake[1][snake[1].length-1].y + squareOffset)) <= squareSize){
+		return true;
 	}
-
-
-	return false;
-}
-function CheckIfSnakeCrashedIntoSnake2() {
-	let headPos = snake[snake.length - 1],
-		i = 0;
-
-	for (i = 0; i < snake2.length - 1; i += 1) {
-		let segment = snake2[i];
-
-		if (Math.abs((segment.x + squareOffset) - (headPos.x + squareOffset)) < squareSize &&
-			Math.abs((segment.y + squareOffset) - (headPos.y + squareOffset)) < squareSize) {
-			return true;
-		}
-	}
-
 
 	return false;
 }
 
+function CheckIfSnakesCrashCentipedeStyle(){
+	if(moveDelta[0].x === moveDelta[1].x && moveDelta[0].y === moveDelta[1].y){
+		return true;
+	}
+
+	return false;
+}
+
+function GetOppositePlayer(plr){
+	return plr === 1 ? 0 : 1;
+}
+
+function UpdateScoreBoard(){
+	let whiteSnakeScore = document.getElementById('whiteSnake'),
+		blackSnakeScore = document.getElementById('blackSnake');
+
+	whiteSnakeScore.innerHTML = score[0];
+	blackSnakeScore.innerHTML = score[1];
+}
 
 function EndGame() {
 	let fragment,
@@ -793,17 +453,17 @@ function EndGame() {
 	div = document.createElement('div');
 	div.setAttribute('id', 'gameOverContainer');
 	div.setAttribute('class', 'window');
-	div.innerHTML = 'Game Over';
+	div.innerHTML = winner;
 
 	span = document.createElement('span');
 	span.setAttribute('id', 'scoreSpan');
 	span2 = document.createElement('span');
 	span2.setAttribute('id', 'scoreSpan2');
 
-	span.innerHTML = 'Black snake score: ';
-	span.innerHTML += score;
-	span2.innerHTML = 'White snake score: ';
-	span2.innerHTML += score2;
+	span.innerHTML = 'Player 1 score: ';
+	span.innerHTML += score[0];
+	span2.innerHTML = 'Player 2 score: ';
+	span2.innerHTML += score[1];
 
 	button = document.createElement('button');
 	button.setAttribute('id', 'tryAgainButton');
@@ -815,7 +475,7 @@ function EndGame() {
 	div.appendChild(button);
 	fragment.appendChild(div);
 
-  mainMusic.pause();
+  	mainMusic.pause();
 	mainMusic.currentTime = 0;
 	document.body.appendChild(fragment);
 }

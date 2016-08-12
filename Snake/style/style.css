@@ -10,7 +10,7 @@ body {
 	background-repeat: no-repeat;
 }
 
-#gameCanvas {
+#snakeCanvas, #collectibleCanvas {
 	display: inline-block;
 	position: absolute;
 }

@@ -73,9 +73,13 @@ function selectDifficulty(){
 }
 
 function BeginGame() {
-	let canvas = document.getElementById('gameCanvas'),
+	let canvas = document.getElementById('snakeCanvas'),
 		ctx = canvas.getContext('2d');
 
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	canvas = document.getElementById('collectibleCanvas');
+	ctx = canvas.getContext('2d');
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	ResetGameVariables();
@@ -101,7 +105,7 @@ function BeginGame() {
 	}
 	
 	function CreateSnakes() {
-		let canvas = document.getElementById('gameCanvas'),
+		let canvas = document.getElementById('snakeCanvas'),
 			ctx = canvas.getContext('2d'),
 			i = 0;
 
@@ -154,86 +158,86 @@ function PressingKey(ev) {
 	}
 }
 
-function GameThinker() {
-	SnakesMove();
-
+function HandleCrashes(){
 	for(let i = 0; i < players; i += 1){
 		if(CheckIfSnakeCrashedIntoItself(i)){
 			winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
-			EndGame();
 			return;
 		}
 
-		let opponentSliceAt = CheckIfSnakeCrashedIntoTheOtherOne(i);
+		let crashedIntoOpponentAt = CheckIfSnakeCrashedIntoTheOtherOne(i);
 
-		if(opponentSliceAt){
+		if(crashedIntoOpponentAt){
 			if(CheckIfSnakesCrashHeadFirst()){ //snakes crash head first
-				winner = 'Draw!';
-				EndGame();
+				if(score[0] > score[1]) {winner = 'Player 1 wins!';}
+				else if(score[0] < score[1]) {winner = 'Player 2 wins!';}
+				else {winner = 'Draw!';}
+
 				return;
 			}
 
-			if(CheckIfSnakesCrashCentipedeStyle()){ //snake crashed into the back of the other one
-				winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
-				EndGame();
-				return;
-			}
-
-			DoSlice(GetOppositePlayer(i), opponentSliceAt-1);
+			let oppositePlr = GetOppositePlayer(i);
+			snake[oppositePlr] = snake[oppositePlr].slice(crashedIntoOpponentAt-1);
 		}
+	}
+}
 
-		let sliceAtIndex = 1;
-
+function HandleCollectibles(){
+	for(let i = 0; i < players; i += 1){
 		for(let j = 0; j < collectibles.length; j += 1){
 			if(CheckIfSnakeSteppedOnCollectible(i, collectibles[j])){	
-				DoCollect(i, j);
+				score[i] += collectibleScores[j];
 
-				function DoCollect(plr, cIndex){
-					score[plr] += collectibleScores[cIndex];
+				if(j < collectibles.length - 1){ //collected apple/banana
+					snake[i].push({
+						x: snake[i][snake[i].length-1].x + moveDelta[i].x,
+						y: snake[i][snake[i].length-1].y + moveDelta[i].y
+					});
+					document.getElementById('eatingFood').play();
+				} else { //stepped on a mine
+					snake[i] = snake[i].slice(1);
 
-					if(cIndex < collectibles.length - 1){ //collected apple/banana
-						sliceAtIndex = 0;
-						document.getElementById('eatingFood').play();
-					} else { //stepped on a mine
-						if(snake[i].length - 2 < snakeInitialSize){
-							winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
-							EndGame();
-							return;
-						}
-
-						sliceAtIndex = 2;
-						DoExplosion(collectibles[cIndex]);
+					if(snake[i].length < snakeInitialSize){
+						winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+						return;
 					}
 
-					collectibles[cIndex] = {x: -squareSize, y: -squareSize};
-					PlaceCollectible(cIndex);
-					UpdateScoreBoard();
+					DoExplosion(collectibles[j]);
 				}
+
+				let canvas = document.getElementById('collectibleCanvas'),
+					ctx = canvas.getContext('2d');
+
+				ctx.clearRect(collectibles[j].x, collectibles[j].y, squareSize, squareSize);
+
+				collectibles[j] = {x: -squareSize, y: -squareSize};
+				PlaceCollectible(j);
+				UpdateScoreBoard();
 			}
 		}
-
-		if(sliceAtIndex > 0) {
-			RemoveSnakeSegments(i, sliceAtIndex);
-		}
-
-		snake[i] = snake[i].slice(sliceAtIndex);
-
-		DrawSnake(i);
 	}
+}
+
+function GameThinker() {
+	SnakesMove();
+	DrawSnakes();
+
+	HandleCrashes();
+	HandleCollectibles();
+
+	console.log(collectibles);
+	console.log(snake);
 
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
 	if(winner === ''){
 		setTimeout(GameThinker, speed - Math.round(Math.max(score[0], score[1]) / 10));
+	} else {
+		EndGame();
 	}
 }
 
-function DoSlice(plr, sliceAt){
-	RemoveSnakeSegments(plr, sliceAt);
-	snake[plr] = snake[plr].slice(sliceAt);
-}
-
 function DoExplosion(bomb){
-	let canvas = document.getElementById('gameCanvas'),
+	let canvas = document.getElementById('snakeCanvas'),
 		ctx = canvas.getContext('2d'),
 		audio = new Audio('audio/EXPLOSION.mp3'),
 		explosionpng = new Image();
@@ -248,33 +252,31 @@ function DoExplosion(bomb){
 	}
 }
 
-function RemoveSnakeSegments(plr, count) {
-	let canvas = document.getElementById('gameCanvas'),
+function DrawSnakes() {
+	let canvas = document.getElementById('snakeCanvas'),
 		ctx = canvas.getContext('2d');
 
-	for(let i = 0; i < count; i += 1){
-		let lastSegmentX = snake[plr][i].x,
-			lastSegmentY = snake[plr][i].y;
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		ctx.clearRect(lastSegmentX-1, lastSegmentY-1, squareSize+2, squareSize+2);
+	ctx.fillStyle = 'rgb(255, 255, 255)';
+	ctx.strokeStyle = 'rgb(0, 0, 0)';
+
+	for(let i = 0; i < snake[0].length; i += 1){
+		ctx.fillRect(snake[0][i].x, snake[0][i].y, squareSize, squareSize);
+		ctx.strokeRect(snake[0][i].x, snake[0][i].y, squareSize, squareSize);
+	}
+
+	ctx.fillStyle = 'rgb(0, 0, 0)';
+	ctx.strokeStyle = 'rgb(255, 255, 255)';
+
+	for(let i = 0; i < snake[1].length; i += 1){
+		ctx.fillRect(snake[1][i].x, snake[1][i].y, squareSize, squareSize);
+		ctx.strokeRect(snake[1][i].x, snake[1][i].y, squareSize, squareSize);
 	}
 }
 
-function DrawSnake(plr) {
-	let canvas = document.getElementById('gameCanvas'),
-		ctx = canvas.getContext('2d'),
-		sStyle = plr * 255,
-		fStyle = sStyle === 255 ? 0 : 255;
-
-	ctx.fillStyle = 'rgb(' + fStyle + ', ' + fStyle + ', ' + fStyle + ')';
-	ctx.strokeStyle = 'rgb(' + sStyle + ', ' + sStyle + ', ' + sStyle + ')';
-
-	ctx.fillRect(snake[plr][snake[plr].length-1].x, snake[plr][snake[plr].length-1].y, squareSize, squareSize);
-	ctx.strokeRect(snake[plr][snake[plr].length-1].x, snake[plr][snake[plr].length-1].y, squareSize, squareSize);
-}
-
 function PlaceCollectible(cIndex) {
-	let canvas = document.getElementById('gameCanvas'),
+	let canvas = document.getElementById('collectibleCanvas'),
 		ctx = canvas.getContext('2d'),
 		cX = canvas.width,
 		cY = canvas.height,
@@ -329,15 +331,15 @@ function SnakesMove() {
 			{x: prevHeadPos[1].x + moveDelta[1].x, y: prevHeadPos[1].y + moveDelta[1].y}
 		]
 
-	nextHeadPos[0] = CheckIfSnakeOverflows(nextHeadPos[0]);
-	nextHeadPos[1] = CheckIfSnakeOverflows(nextHeadPos[1]);
-
-	snake[0].push(nextHeadPos[0]);
-	snake[1].push(nextHeadPos[1]);
+	for(let i = 0; i < players; i += 1){
+		nextHeadPos[i] = CheckIfSnakeOverflows(nextHeadPos[i]);
+		snake[i].push(nextHeadPos[i]);
+		snake[i] = snake[i].slice(1);
+	}
 }
 
 function CheckIfSnakeOverflows(headPos) {
-	let canvas = document.getElementById('gameCanvas'),
+	let canvas = document.getElementById('snakeCanvas'),
 		cX = canvas.width,
 		cY = canvas.height,
 		newX = headPos.x,
@@ -412,11 +414,9 @@ function CheckIfSnakeCrashedIntoTheOtherOne(plr) {
 }
 
 function CheckIfSnakesCrashHeadFirst(){
-	//if(((moveDelta[0].x === moveDelta[1].x && moveDelta[0].y === moveDelta[1].y * -1)
-	//|| (moveDelta[0].x === moveDelta[1].x * -1 && moveDelta[0].y === moveDelta[1].y))
-	//&& 
 	if(Math.abs((snake[0][snake[0].length-1].x + squareOffset) - (snake[1][snake[1].length-1].x + squareOffset)) <= squareSize &&
-	Math.abs((snake[0][snake[0].length-1].y + squareOffset) - (snake[1][snake[1].length-1].y + squareOffset)) <= squareSize){
+	Math.abs((snake[0][snake[0].length-1].y + squareOffset) - (snake[1][snake[1].length-1].y + squareOffset)) <= squareSize
+	&& (snake[0][snake[0].length-1].x === snake[1][snake[1].length-1].x || snake[0][snake[0].length-1].y === snake[1][snake[1].length-1].y)){
 		return true;
 	}
 

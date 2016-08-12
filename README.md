@@ -1,5 +1,7 @@
 # Snake Game
 
+[![Snake Game](https://img.youtube.com/vi/e3AncUp5Fwc/0.jpg)](https://www.youtube.com/watch?v=e3AncUp5Fwc)
+
 **Team:** Manhattan
 
 **Category:** Canvas HTML5 and Javascript

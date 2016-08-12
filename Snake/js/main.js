@@ -87,6 +87,7 @@ function BeginGame() {
 		score = [];
 		moveDelta = [];
 		collectibles = [];
+		winner = '';
 
 		for(let i = 0; i < players; i += 1){
 			moveDelta.push({x: i === 0 ? squareSize:-squareSize, y: 0});
@@ -98,7 +99,7 @@ function BeginGame() {
 			collectibles.push({});
 		}
 	}
-
+	
 	function CreateSnakes() {
 		let canvas = document.getElementById('gameCanvas'),
 			ctx = canvas.getContext('2d'),
@@ -173,7 +174,7 @@ function GameThinker() {
 			}
 
 			if(CheckIfSnakesCrashCentipedeStyle()){ //snake crashed into the back of the other one
-				winner = winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+				winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
 				EndGame();
 				return;
 			}
@@ -190,12 +191,12 @@ function GameThinker() {
 				function DoCollect(plr, cIndex){
 					score[plr] += collectibleScores[cIndex];
 
-					if(cIndex < collectibles.length - 1){
+					if(cIndex < collectibles.length - 1){ //collected apple/banana
 						sliceAtIndex = 0;
 						document.getElementById('eatingFood').play();
-					} else {
+					} else { //stepped on a mine
 						if(snake[i].length - 2 < snakeInitialSize){
-							winner = winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
+							winner = 'Player ' + (GetOppositePlayer(i)+1) + ' wins!';
 							EndGame();
 							return;
 						}
@@ -221,7 +222,9 @@ function GameThinker() {
 	}
 
 	//why setTimeout instead of interval? because we'll be speeding up the snake as it grows
-	setTimeout(GameThinker, speed - Math.round(Math.max(score[0], score[1]) / 10));
+	if(winner === ''){
+		setTimeout(GameThinker, speed - Math.round(Math.max(score[0], score[1]) / 10));
+	}
 }
 
 function DoSlice(plr, sliceAt){
